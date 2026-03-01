@@ -1,0 +1,1283 @@
+<!-- templates/tickets.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тикеты на проработку | Оценка звонков</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            padding: 24px 32px;
+        }
+
+        .top-nav {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .project-badge {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            color: #5a5e6a;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            text-decoration: none;
+            color: #5a5e6a;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            color: #0066cc;
+        }
+
+        .nav-item.active {
+            color: #0066cc;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-item.active:after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0066cc;
+        }
+
+        .tickets-badge {
+            background: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .user-rating {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logout-btn:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .projects-strip {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .project-tag {
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: default;
+            text-decoration: none;
+        }
+
+        .project-tag.add {
+            background: #0066cc;
+            color: white;
+            cursor: pointer;
+        }
+
+        .project-tag.all {
+            background: #ffffff;
+            color: #2c3e50;
+            border: 1px solid #d0d7de;
+            cursor: pointer;
+        }
+
+        .tickets-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 24px;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+            height: fit-content;
+        }
+
+        .sidebar-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0a1e3c;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-section {
+            margin-bottom: 24px;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            color: #6c757d;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #edf0f5;
+            border-radius: 12px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        /* Стили для фильтра по датам */
+        .date-filter {
+            background: #f8faff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+
+        .date-range {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .date-field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .date-field label {
+            font-size: 12px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .date-input {
+            padding: 8px 12px;
+            border: 2px solid #edf0f5;
+            border-radius: 10px;
+            font-size: 13px;
+            background: white;
+            width: 100%;
+        }
+
+        .date-input:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .date-type-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .date-type-btn {
+            flex: 1;
+            padding: 8px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid #d0d7de;
+            background: white;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .date-type-btn:hover {
+            background: #f0f3f8;
+        }
+
+        .date-type-btn.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #f8faff;
+            border-radius: 12px;
+            padding: 16px 8px;
+            text-align: center;
+        }
+
+        .stat-card.warning {
+            background: #fff5f5;
+            border: 1px solid #fc8181;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e3a8a;
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+
+        .stat-card.warning .stat-value {
+            color: #dc3545;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .content-header h1 {
+            font-size: 28px;
+            color: #0a1e3c;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tickets-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .tickets-table th {
+            text-align: left;
+            padding: 16px 0;
+            color: #6c757d;
+            font-weight: 500;
+            font-size: 13px;
+            border-bottom: 2px solid #edf0f5;
+        }
+
+        .tickets-table td {
+            padding: 20px 0;
+            border-bottom: 1px solid #f0f3f8;
+            vertical-align: middle;
+        }
+
+        .ticket-title {
+            font-weight: 600;
+            color: #0a1e3c;
+            margin-bottom: 4px;
+        }
+
+        .ticket-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: #8a94a6;
+            flex-wrap: wrap;
+        }
+
+        .ticket-project {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .ticket-operator {
+            color: #0b1f3a;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .status-new {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-progress {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .priority-badge {
+            padding: 4px 8px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .priority-low {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .priority-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .priority-high {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .priority-critical {
+            background: #dc3545;
+            color: white;
+        }
+
+        .sla-deadline {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .sla-normal {
+            color: #0b6b0b;
+        }
+
+        .sla-warning {
+            color: #856404;
+        }
+
+        .sla-overdue {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .btn-icon {
+            padding: 8px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid #d0d7de;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            color: #2c3e50;
+        }
+
+        .btn-icon:hover {
+            background: #f8f9fa;
+            border-color: #0066cc;
+            color: #0066cc;
+        }
+
+        .btn-icon.primary {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+
+        .btn-icon.primary:hover {
+            background: #0052a3;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: #6c757d;
+            background: #f8f9fa;
+            border-radius: 16px;
+        }
+
+        .empty-state div:first-child {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 8px;
+            color: #0a1e3c;
+        }
+
+        .hidden-data {
+            display: none;
+        }
+
+        /* Стили для модального окна */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            overflow: hidden;
+        }
+
+        .modal-confirm {
+            border-top: 4px solid #dc3545;
+        }
+
+        .modal-header {
+            padding: 24px 24px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .modal-icon.confirm {
+            background: #fee;
+            color: #dc3545;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #0a1e3c;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .modal-content {
+            padding: 0 24px 24px;
+        }
+
+        .modal-text {
+            color: #2c3e50;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            text-align: center;
+        }
+
+        .modal-btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            background: #0052a3;
+        }
+
+        .modal-btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .modal-btn-danger:hover {
+            background: #c82333;
+        }
+
+        .modal-btn-secondary {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #d0d7de;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .modal-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 16px 0;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .modal-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .modal-timer {
+            text-align: center;
+            color: #6c757d;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+
+        .modal-progress {
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            margin-top: 16px;
+            overflow: hidden;
+        }
+
+        .modal-progress-bar {
+            height: 100%;
+            width: 100%;
+            background: #0066cc;
+            animation: progress 3s linear;
+        }
+
+        .active-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 12px;
+            background: #f8faff;
+            border-radius: 12px;
+        }
+
+        .filter-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: white;
+            border: 1px solid #d0d7de;
+            border-radius: 30px;
+            font-size: 12px;
+            color: #2c3e50;
+        }
+
+        .filter-tag .remove {
+            cursor: pointer;
+            color: #6c757d;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .filter-tag .remove:hover {
+            color: #dc3545;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        @media (max-width: 1200px) {
+            .nav-links {
+                gap: 15px;
+            }
+            .tickets-container {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 992px) {
+            .nav-links {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .tickets-table {
+                display: block;
+                overflow-x: auto;
+            }
+            .ticket-meta {
+                flex-direction: column;
+                gap: 4px;
+            }
+            .stat-label {
+                white-space: normal;
+            }
+            .top-nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .nav-links {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+            .nav-item.active:after {
+                bottom: -5px;
+            }
+            .user-rating {
+                margin-left: 0;
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Модальное окно подтверждения выхода -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal modal-confirm">
+            <div class="modal-header">
+                <div class="modal-icon confirm">
+                    ⚠️
+                </div>
+                <div>
+                    <div class="modal-title">Выход из профиля</div>
+                    <div class="modal-subtitle">Подтверждение действия</div>
+                </div>
+            </div>
+            <div class="modal-content">
+                <div class="modal-text">
+                    Вы действительно хотите выйти из системы? Все несохраненные данные будут потеряны.
+                </div>
+                
+                <div class="modal-checkbox">
+                    <input type="checkbox" id="saveSession">
+                    <label for="saveSession">Запомнить меня на этом устройстве</label>
+                </div>
+
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-secondary" onclick="closeLogoutModal()">
+                        Отмена
+                    </button>
+                    <button class="modal-btn modal-btn-danger" onclick="confirmLogout()">
+                        Выйти
+                    </button>
+                </div>
+
+                <div class="modal-timer">
+                    Окно закроется через <span id="timer">5</span> сек
+                </div>
+                <div class="modal-progress">
+                    <div class="modal-progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="top-nav">
+        <div class="project-badge">Оценка звонков • Контроль качества</div>
+        <div class="nav-links">
+            <a href="/" class="nav-item {% if request.url.path == '/' %}active{% endif %}">Дашборд</a>
+            <a href="/operators" class="nav-item {% if request.url.path == '/operators' %}active{% endif %}">Операторы</a>
+            <a href="/projects" class="nav-item {% if request.url.path == '/projects' %}active{% endif %}">Проекты</a>
+            <a href="/evaluations" class="nav-item {% if request.url.path == '/evaluations' %}active{% endif %}">Оцененные звонки</a>
+            <a href="/reports" class="nav-item {% if request.url.path == '/reports' %}active{% endif %}">Отчеты</a>
+            <a href="/tickets" class="nav-item {% if request.url.path == '/tickets' %}active{% endif %}">
+                Тикеты на проработку
+                <span class="tickets-badge">{{ stats.new + stats.in_progress }}</span>
+            </a>
+            <a href="/auth/profile" class="nav-item {% if request.url.path == '/auth/profile' %}active{% endif %}">Профиль</a>
+            {% if user and user.role == 'admin' %}
+            <a href="/admin" class="nav-item {% if request.url.path == '/admin' %}active{% endif %}">Админ</a>
+            {% endif %}
+        </div>
+        <div class="user-rating">
+            <div class="user-info">
+                <div class="user-avatar">
+                    {% if user and user.avatar_letters %}
+                        {{ user.avatar_letters }}
+                    {% elif user and user.full_name %}
+                        {{ user.full_name[:2]|upper }}
+                    {% else %}
+                        АД
+                    {% endif %}
+                </div>
+                <span style="font-size: 14px; font-weight: 500;">
+                    {% if user and user.full_name %}
+                        {{ user.full_name.split()[0] }}
+                    {% else %}
+                        Админ
+                    {% endif %}
+                </span>
+            </div>
+            <button class="logout-btn" type="button" onclick="showLogoutModal()">
+                🚪 Выйти
+            </button>
+        </div>
+    </div>
+
+    <!-- Проекты -->
+    <div class="projects-strip">
+        {% for project in projects %}
+            <a href="/project/{{ project.id }}" class="project-tag" style="background: #f0f3fa;">
+                📁 {{ project.name }}
+            </a>
+        {% else %}
+            <span class="project-tag" style="background: #f0f3fa;">📁 Нет проектов</span>
+        {% endfor %}
+        
+        {% if user and user.role in ['admin', 'controller'] %}
+        <span class="project-tag add" onclick="window.location.href='/projects'">➕ Добавить проект</span>
+        {% endif %}
+        
+        <span class="project-tag all" onclick="window.location.href='/projects'">
+            📋 Все проекты ({{ projects|length }})
+        </span>
+    </div>
+
+    <!-- Скрытые данные для JavaScript -->
+    <div id="ticketsData" 
+         class="hidden-data"
+         data-user-role="{{ user.role }}"
+         data-user-id="{{ user.id }}">
+    </div>
+
+    <div class="tickets-container">
+        <!-- Сайдбар с фильтрами и статистикой -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span>🎫</span> Фильтры
+            </div>
+
+            <!-- Статистика -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.new }}</div>
+                    <div class="stat-label">Новые</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">{{ stats.in_progress }}</div>
+                    <div class="stat-label">В работе</div>
+                </div>
+                <div class="stat-card {% if stats.overdue > 0 %}warning{% endif %}">
+                    <div class="stat-value">{{ stats.overdue }}</div>
+                    <div class="stat-label">Просрочено</div>
+                </div>
+            </div>
+
+            <form id="filterForm" method="get" action="/tickets">
+                <div class="filter-section">
+                    <div class="filter-label">📁 Проект</div>
+                    <select name="project_id" class="filter-select" onchange="this.form.submit()">
+                        <option value="">Все проекты</option>
+                        {% for project in projects %}
+                        <option value="{{ project.id }}" {% if request.query_params.get('project_id')|int == project.id %}selected{% endif %}>
+                            {{ project.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-label">📌 Статус</div>
+                    <select name="status" class="filter-select" onchange="this.form.submit()">
+                        <option value="">Все статусы</option>
+                        <option value="new" {% if request.query_params.get('status') == 'new' %}selected{% endif %}>🆕 Новые</option>
+                        <option value="in_progress" {% if request.query_params.get('status') == 'in_progress' %}selected{% endif %}>🔄 В работе</option>
+                        <option value="completed" {% if request.query_params.get('status') == 'completed' %}selected{% endif %}>✅ Выполненные</option>
+                        <option value="cancelled" {% if request.query_params.get('status') == 'cancelled' %}selected{% endif %}>❌ Отмененные</option>
+                    </select>
+                </div>
+
+                <!-- Фильтр по датам -->
+                <div class="filter-section">
+                    <div class="filter-label">📅 Период</div>
+                    
+                    <div class="date-type-selector">
+                        <button type="submit" name="date_type" value="created" class="date-type-btn {% if request.query_params.get('date_type', 'created') == 'created' %}active{% endif %}">
+                            Дата создания
+                        </button>
+                        <button type="submit" name="date_type" value="completed" class="date-type-btn {% if request.query_params.get('date_type') == 'completed' %}active{% endif %}">
+                            Дата проработки
+                        </button>
+                    </div>
+                    
+                    <div class="date-filter">
+                        <div class="date-range">
+                            <div class="date-field">
+                                <label>От</label>
+                                <input type="date" name="start_date" class="date-input" value="{{ request.query_params.get('start_date', '') }}" onchange="this.form.submit()">
+                            </div>
+                            <div class="date-field">
+                                <label>До</label>
+                                <input type="date" name="end_date" class="date-input" value="{{ request.query_params.get('end_date', '') }}" onchange="this.form.submit()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-icon primary" style="width: 100%; justify-content: center; margin-top: 16px;">
+                    Применить фильтры
+                </button>
+                
+                <a href="/tickets" class="btn-icon" style="width: 100%; justify-content: center; margin-top: 8px; text-align: center;">
+                    Сбросить фильтры
+                </a>
+            </form>
+            
+            <!-- Активные фильтры -->
+            {% if request.query_params.get('start_date') or request.query_params.get('end_date') or request.query_params.get('project_id') or request.query_params.get('status') %}
+            <div class="active-filters">
+                <span style="color: #6c757d; font-size: 12px;">Активные фильтры:</span>
+                {% if request.query_params.get('project_id') %}
+                <span class="filter-tag">
+                    📁 
+                    {% for project in projects %}
+                        {% if project.id == request.query_params.get('project_id')|int %}
+                            {{ project.name }}
+                        {% endif %}
+                    {% endfor %}
+                    <span class="remove" onclick="removeFilter('project_id')">✕</span>
+                </span>
+                {% endif %}
+                
+                {% if request.query_params.get('status') %}
+                <span class="filter-tag">
+                    📌 
+                    {% if request.query_params.get('status') == 'new' %}🆕 Новые
+                    {% elif request.query_params.get('status') == 'in_progress' %}🔄 В работе
+                    {% elif request.query_params.get('status') == 'completed' %}✅ Выполненные
+                    {% elif request.query_params.get('status') == 'cancelled' %}❌ Отмененные
+                    {% endif %}
+                    <span class="remove" onclick="removeFilter('status')">✕</span>
+                </span>
+                {% endif %}
+                
+                {% if request.query_params.get('start_date') or request.query_params.get('end_date') %}
+                <span class="filter-tag">
+                    📅 
+                    {% if request.query_params.get('date_type') == 'completed' %}
+                        Проработки
+                    {% else %}
+                        Создания
+                    {% endif %}: 
+                    {{ request.query_params.get('start_date') or '...' }} - {{ request.query_params.get('end_date') or '...' }}
+                    <span class="remove" onclick="removeDateFilter()">✕</span>
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Основной контент -->
+        <div class="main-content">
+            <div class="content-header">
+                <h1>
+                    <span>🎫</span>
+                    Тикеты на проработку
+                </h1>
+                <span style="color: #6c757d; background: #f8f9fa; padding: 8px 16px; border-radius: 30px;">
+                    {{ tickets|length }} 
+                    {% if tickets|length == 1 %}
+                        тикет
+                    {% elif tickets|length >= 2 and tickets|length <= 4 %}
+                        тикета
+                    {% else %}
+                        тикетов
+                    {% endif %}
+                </span>
+            </div>
+
+            {% if tickets %}
+            <div style="overflow-x: auto;">
+                <table class="tickets-table">
+                    <thead>
+                        <tr>
+                            <th>Тикет</th>
+                            <th>Оператор / Проект</th>
+                            <th>Статус</th>
+                            <th>Приоритет</th>
+                            <th>Дата создания</th>
+                            <th>Дата проработки</th>
+                            <th>SLA</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in tickets %}
+                        <tr>
+                            <td>
+                                <div class="ticket-title">{{ ticket.title }}</div>
+                                <div class="ticket-meta">
+                                    <span>👤 {{ ticket.creator.full_name }}</span>
+                                    {% if ticket.topic == 'general' %}
+                                    <span>📋 Общая проработка</span>
+                                    {% elif ticket.topic == 'evaluation' %}
+                                    <span>📞 По оценке</span>
+                                    {% elif ticket.topic == 'metric' %}
+                                    <span>📏 По метрике</span>
+                                    {% elif ticket.topic == 'block' %}
+                                    <span>📊 По блоку</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="ticket-operator">{{ ticket.operator.full_name }}</div>
+                                <div style="margin-top: 4px;">
+                                    <span class="ticket-project">{{ ticket.project.name }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                {% if ticket.status == 'new' %}
+                                <span class="status-badge status-new">🆕 Новый</span>
+                                {% elif ticket.status == 'in_progress' %}
+                                <span class="status-badge status-progress">🔄 В работе</span>
+                                {% elif ticket.status == 'completed' %}
+                                <span class="status-badge status-completed">✅ Выполнен</span>
+                                {% elif ticket.status == 'cancelled' %}
+                                <span class="status-badge status-cancelled">❌ Отменен</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if ticket.priority == 'low' %}
+                                <span class="priority-badge priority-low">Низкий</span>
+                                {% elif ticket.priority == 'medium' %}
+                                <span class="priority-badge priority-medium">Средний</span>
+                                {% elif ticket.priority == 'high' %}
+                                <span class="priority-badge priority-high">Высокий</span>
+                                {% elif ticket.priority == 'critical' %}
+                                <span class="priority-badge priority-critical">Критичный</span>
+                                {% else %}
+                                <span class="priority-badge priority-medium">Средний</span>
+                                {% endif %}
+                            </td>
+                            <td style="color: #6c757d; font-size: 13px;">
+                                {{ ticket.created_at.strftime('%d.%m.%Y') if ticket.created_at else '—' }}
+                            </td>
+                            <td style="color: #6c757d; font-size: 13px;">
+                                {% if ticket.completed_at %}
+                                    {{ ticket.completed_at.strftime('%d.%m.%Y') }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if ticket.sla_deadline %}
+                                    {% set days_left = (ticket.sla_deadline - date.today()).days %}
+                                    {% if days_left < 0 %}
+                                    <span class="sla-deadline sla-overdue">Просрочено на {{ days_left|abs }} дн.</span>
+                                    {% elif days_left == 0 %}
+                                    <span class="sla-deadline sla-warning">Сегодня</span>
+                                    {% elif days_left <= 2 %}
+                                    <span class="sla-deadline sla-warning">{{ days_left }} дн.</span>
+                                    {% else %}
+                                    <span class="sla-deadline sla-normal">{{ days_left }} дн.</span>
+                                    {% endif %}
+                                {% else %}
+                                <span style="color: #8a94a6;">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="/tickets/{{ ticket.id }}" style="text-decoration: none;">
+                                    <button class="btn-icon">
+                                        <span>👁️</span> Подробнее
+                                    </button>
+                                </a>
+                                {% if ticket.status == 'new' and user.role == 'admin' %}
+                                <button class="btn-icon take-ticket-btn" style="margin-left: 8px;" data-ticket-id="{{ ticket.id }}">
+                                    <span>✅</span> Взять
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div>🎫</div>
+                <h3>Нет тикетов</h3>
+                <p style="margin-bottom: 20px;">Тикеты появляются после создания оценки с пометкой "Создать тикет"</p>
+                <a href="/" style="text-decoration: none;">
+                    <button class="btn-icon primary">
+                        <span>📞</span> Перейти к оценкам
+                    </button>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Таймер для модального окна выхода
+        let timerInterval;
+
+        // Функции для модального окна выхода
+        function showLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.add('active');
+            
+            // Запускаем таймер на 5 секунд
+            let timeLeft = 5;
+            const timerElement = document.getElementById('timer');
+            
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    confirmLogout();
+                }
+            }, 1000);
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.remove('active');
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function confirmLogout() {
+            closeLogoutModal();
+            window.location.href = '/auth/logout';
+        }
+
+        // Функции для удаления фильтров
+        function removeFilter(filterName) {
+            const url = new URL(window.location.href);
+            url.searchParams.delete(filterName);
+            window.location.href = url.toString();
+        }
+
+        function removeDateFilter() {
+            const url = new URL(window.location.href);
+            url.searchParams.delete('start_date');
+            url.searchParams.delete('end_date');
+            url.searchParams.delete('date_type');
+            window.location.href = url.toString();
+        }
+
+        // Закрытие по клику на overlay
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    if (this.id === 'logoutModal' && timerInterval) {
+                        clearInterval(timerInterval);
+                    }
+                }
+            });
+        });
+
+        // Закрытие по ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                    if (modal.id === 'logoutModal' && timerInterval) {
+                        clearInterval(timerInterval);
+                    }
+                });
+            }
+        });
+
+        // Обработка чекбокса "Запомнить меня"
+        document.getElementById('saveSession')?.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                console.log('Сессия будет сохранена');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Обработчики для кнопок "Взять"
+            document.querySelectorAll('.take-ticket-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const ticketId = this.dataset.ticketId;
+                    
+                    if (!confirm('Взять этот тикет в работу?')) return;
+                    
+                    fetch(`/api/tickets/${ticketId}/take`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'}
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alert('✅ Тикет взят в работу');
+                            location.reload();
+                        } else {
+                            alert('❌ ' + (data.detail || 'Ошибка'));
+                        }
+                    })
+                    .catch(error => {
+                        alert('❌ Ошибка сети');
+                        console.error(error);
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

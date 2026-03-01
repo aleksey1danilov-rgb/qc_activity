@@ -1,0 +1,1278 @@
+<!-- templates/reports.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отчеты | Оценка звонков</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            padding: 24px 32px;
+        }
+
+        .top-nav {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .project-badge {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            color: #5a5e6a;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            text-decoration: none;
+            color: #5a5e6a;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            color: #0066cc;
+        }
+
+        .nav-item.active {
+            color: #0066cc;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-item.active:after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0066cc;
+        }
+
+        .tickets-badge {
+            background: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .user-rating {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logout-btn:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .projects-strip {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .project-tag {
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: default;
+            text-decoration: none;
+        }
+
+        .project-tag.add {
+            background: #0066cc;
+            color: white;
+            cursor: pointer;
+        }
+
+        .project-tag.all {
+            background: #ffffff;
+            color: #2c3e50;
+            border: 1px solid #d0d7de;
+            cursor: pointer;
+        }
+
+        .reports-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 24px;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+            height: fit-content;
+            width: 100%;
+        }
+
+        .sidebar-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0a1e3c;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-section {
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            color: #6c757d;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #edf0f5;
+            border-radius: 12px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .period-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .period-btn {
+            padding: 6px 10px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid #d0d7de;
+            background: white;
+            flex: 1 1 auto;
+            min-width: 50px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .period-btn:hover {
+            background: #f0f3f8;
+        }
+
+        .period-btn.active {
+            background: #0066cc;
+            color: white;
+            border-color: #0066cc;
+        }
+
+        .date-range {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .date-input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 2px solid #edf0f5;
+            border-radius: 12px;
+            font-size: 12px;
+            background: white;
+        }
+
+        .date-input:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0052a3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,102,204,0.2);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #0066cc;
+            color: #0066cc;
+        }
+
+        .btn-outline:hover {
+            background: #e6f0ff;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .content-header h1 {
+            font-size: 28px;
+            color: #0a1e3c;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: #f8faff;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .chart-container {
+            background: white;
+            border: 2px solid #edf0f5;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            height: 400px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0a1e3c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .table-container {
+            background: white;
+            border: 2px solid #edf0f5;
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .table-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0a1e3c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reports-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .reports-table th {
+            text-align: left;
+            padding: 12px 0;
+            color: #6c757d;
+            font-weight: 500;
+            font-size: 13px;
+            border-bottom: 2px solid #edf0f5;
+        }
+
+        .reports-table td {
+            padding: 16px 0;
+            border-bottom: 1px solid #f0f3f8;
+        }
+
+        .quality-badge {
+            background: #e6f7e6;
+            color: #0b6b0b;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .project-tag {
+            background: #e8eaf6;
+            color: #1a237e;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: #6c757d;
+        }
+
+        .empty-state div:first-child {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 8px;
+            color: #0a1e3c;
+        }
+
+        .hidden-data {
+            display: none;
+        }
+
+        /* Стили для модального окна */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            overflow: hidden;
+        }
+
+        .modal-confirm {
+            border-top: 4px solid #dc3545;
+        }
+
+        .modal-header {
+            padding: 24px 24px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .modal-icon.confirm {
+            background: #fee;
+            color: #dc3545;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #0a1e3c;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .modal-content {
+            padding: 0 24px 24px;
+        }
+
+        .modal-text {
+            color: #2c3e50;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            text-align: center;
+        }
+
+        .modal-btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            background: #0052a3;
+        }
+
+        .modal-btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .modal-btn-danger:hover {
+            background: #c82333;
+        }
+
+        .modal-btn-secondary {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #d0d7de;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .modal-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 16px 0;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .modal-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .modal-timer {
+            text-align: center;
+            color: #6c757d;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+
+        .modal-progress {
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            margin-top: 16px;
+            overflow: hidden;
+        }
+
+        .modal-progress-bar {
+            height: 100%;
+            width: 100%;
+            background: #0066cc;
+            animation: progress 3s linear;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        @media (max-width: 1200px) {
+            .nav-links {
+                gap: 15px;
+            }
+            .reports-container {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .period-buttons {
+                flex-wrap: wrap;
+            }
+            .period-btn {
+                flex: 1 1 calc(50% - 3px);
+            }
+        }
+
+        @media (max-width: 992px) {
+            .nav-links {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+            .reports-container {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .content-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            .period-buttons {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .period-btn {
+                flex: 1 1 calc(50% - 3px);
+            }
+            .top-nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .nav-links {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+            .nav-item.active:after {
+                bottom: -5px;
+            }
+            .user-rating {
+                margin-left: 0;
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Модальное окно подтверждения выхода -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal modal-confirm">
+            <div class="modal-header">
+                <div class="modal-icon confirm">
+                    ⚠️
+                </div>
+                <div>
+                    <div class="modal-title">Выход из профиля</div>
+                    <div class="modal-subtitle">Подтверждение действия</div>
+                </div>
+            </div>
+            <div class="modal-content">
+                <div class="modal-text">
+                    Вы действительно хотите выйти из системы? Все несохраненные данные будут потеряны.
+                </div>
+                
+                <!-- Дополнительная опция -->
+                <div class="modal-checkbox">
+                    <input type="checkbox" id="saveSession">
+                    <label for="saveSession">Запомнить меня на этом устройстве</label>
+                </div>
+
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-secondary" onclick="closeLogoutModal()">
+                        Отмена
+                    </button>
+                    <button class="modal-btn modal-btn-danger" onclick="confirmLogout()">
+                        Выйти
+                    </button>
+                </div>
+
+                <!-- Таймер автоматического закрытия -->
+                <div class="modal-timer">
+                    Окно закроется через <span id="timer">5</span> сек
+                </div>
+                <div class="modal-progress">
+                    <div class="modal-progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="top-nav">
+        <div class="project-badge">Оценка звонков • Контроль качества</div>
+        <div class="nav-links">
+            <a href="/" class="nav-item {% if request.url.path == '/' %}active{% endif %}">Дашборд</a>
+            <a href="/operators" class="nav-item {% if request.url.path == '/operators' %}active{% endif %}">Операторы</a>
+            <a href="/projects" class="nav-item {% if request.url.path == '/projects' %}active{% endif %}">Проекты</a>
+            <a href="/evaluations" class="nav-item {% if request.url.path == '/evaluations' %}active{% endif %}">Оцененные звонки</a>
+            <a href="/reports" class="nav-item {% if request.url.path == '/reports' %}active{% endif %}">Отчеты</a>
+            <a href="/tickets" class="nav-item {% if request.url.path == '/tickets' %}active{% endif %}">
+                Тикеты на проработку
+                <span class="tickets-badge">{{ tickets_count|default(0) }}</span>
+            </a>
+            <a href="/auth/profile" class="nav-item {% if request.url.path == '/auth/profile' %}active{% endif %}">Профиль</a>
+            {% if user and user.role == 'admin' %}
+            <a href="/admin" class="nav-item {% if request.url.path == '/admin' %}active{% endif %}">Админ</a>
+            {% endif %}
+        </div>
+        <div class="user-rating">
+            <div class="user-info">
+                <div class="user-avatar">
+                    {% if user and user.avatar_letters %}
+                        {{ user.avatar_letters }}
+                    {% elif user and user.full_name %}
+                        {{ user.full_name[:2]|upper }}
+                    {% else %}
+                        АД
+                    {% endif %}
+                </div>
+                <span style="font-size: 14px; font-weight: 500;">
+                    {% if user and user.full_name %}
+                        {{ user.full_name.split()[0] }}
+                    {% else %}
+                        Админ
+                    {% endif %}
+                </span>
+            </div>
+            <!-- Кнопка выхода теперь вызывает модальное окно -->
+            <button class="logout-btn" type="button" onclick="showLogoutModal()">
+                🚪 Выйти
+            </button>
+        </div>
+    </div>
+
+    <!-- Проекты -->
+    <div class="projects-strip">
+        {% for project in projects %}
+            <a href="/project/{{ project.id }}" class="project-tag" style="background: #f0f3fa;">
+                📁 {{ project.name }}
+            </a>
+        {% else %}
+            <span class="project-tag" style="background: #f0f3fa;">📁 Нет проектов</span>
+        {% endfor %}
+        
+        {% if user and user.role in ['admin', 'controller'] %}
+        <span class="project-tag add" onclick="window.location.href='/projects'">➕ Добавить проект</span>
+        {% endif %}
+        
+        <span class="project-tag all" onclick="window.location.href='/projects'">
+            📋 Все проекты ({{ projects|length }})
+        </span>
+    </div>
+
+    <!-- Скрытые данные для JS -->
+    <div id="initialData" 
+         class="hidden-data"
+         data-project-id="{{ selected_project or '' }}"
+         data-operator-id="{{ selected_operator or '' }}"
+         data-period="{{ period or 'week' }}"
+         data-start-date="{{ start_date or '' }}"
+         data-end-date="{{ end_date or '' }}">
+    </div>
+
+    <div class="reports-container">
+        <!-- Сайдбар с фильтрами -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span>📊</span> Фильтры отчетов
+            </div>
+            
+            <div class="filter-section">
+                <div class="filter-label">📁 Проект</div>
+                <select id="projectSelect" class="filter-select">
+                    <option value="">Все проекты</option>
+                    {% for project in projects %}
+                    <option value="{{ project.id }}">{{ project.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-label">🎤 Оператор</div>
+                <select id="operatorSelect" class="filter-select">
+                    <option value="">Все операторы</option>
+                </select>
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-label">📅 Период</div>
+                <div class="period-buttons">
+                    <button class="period-btn" data-period="week">Неделя</button>
+                    <button class="period-btn" data-period="month">Месяц</button>
+                    <button class="period-btn" data-period="quarter">Квартал</button>
+                    <button class="period-btn" data-period="custom">Свой</button>
+                </div>
+                
+                <div id="customDateRange" style="display: none;">
+                    <div class="date-range">
+                        <input type="date" id="startDate" class="date-input" placeholder="От">
+                        <input type="date" id="endDate" class="date-input" placeholder="До">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="applyFilters">Применить</button>
+        </div>
+
+        <!-- Основной контент -->
+        <div class="main-content">
+            <div class="content-header">
+                <h1>
+                    <span>📈</span>
+                    Аналитика качества
+                </h1>
+            </div>
+
+            <!-- Статистика -->
+            <div class="stats-grid" id="statsGrid" style="display: none;">
+                <div class="stat-card">
+                    <div class="stat-value" id="avgQuality">0%</div>
+                    <div class="stat-label">Среднее качество</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="evaluationsCount">0</div>
+                    <div class="stat-label">Оценок за период</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="operatorsCount">0</div>
+                    <div class="stat-label">Активных операторов</div>
+                </div>
+            </div>
+
+            <!-- График динамики -->
+            <div class="chart-container" id="chartContainer" style="display: none;">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <span>📉</span> Динамика качества по дням
+                    </div>
+                </div>
+                <canvas id="qualityChart"></canvas>
+            </div>
+
+            <!-- Топ операторов -->
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-title">
+                        <span>🏆</span> Топ операторов
+                    </div>
+                    <span style="color: #6c757d; font-size: 14px;">По качеству оценок</span>
+                </div>
+                
+                <table class="reports-table">
+                    <thead>
+                        <tr>
+                            <th>Оператор</th>
+                            <th>Проект</th>
+                            <th>Качество</th>
+                            <th>Оценок</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topOperatorsBody">
+                        {% for op in top_operators %}
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-weight: 600;">{{ loop.index }}.</span>
+                                    {{ op.full_name }}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="project-tag">{{ op.project_name }}</span>
+                            </td>
+                            <td>
+                                <span class="quality-badge">{{ op.avg_quality|round|int }}%</span>
+                            </td>
+                            <td style="color: #6c757d;">{{ op.evaluations_count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Таймер для модального окна выхода
+        let timerInterval;
+
+        // Функции для модального окна выхода
+        function showLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.add('active');
+            
+            // Запускаем таймер на 5 секунд
+            let timeLeft = 5;
+            const timerElement = document.getElementById('timer');
+            
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    confirmLogout();
+                }
+            }, 1000);
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.remove('active');
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function confirmLogout() {
+            closeLogoutModal();
+            window.location.href = '/auth/logout';
+        }
+
+        // Закрытие по клику на overlay
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    if (this.id === 'logoutModal' && timerInterval) {
+                        clearInterval(timerInterval);
+                    }
+                }
+            });
+        });
+
+        // Закрытие по ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                    if (modal.id === 'logoutModal' && timerInterval) {
+                        clearInterval(timerInterval);
+                    }
+                });
+            }
+        });
+
+        // Обработка чекбокса "Запомнить меня"
+        document.getElementById('saveSession')?.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                console.log('Сессия будет сохранена');
+                // Здесь можно добавить логику сохранения сессии
+            }
+        });
+
+        let qualityChart = null;
+        
+        // Получаем начальные данные
+        const initialData = document.getElementById('initialData');
+        const initialProjectId = initialData.dataset.projectId;
+        const initialOperatorId = initialData.dataset.operatorId;
+        const initialPeriod = initialData.dataset.period;
+        const initialStartDate = initialData.dataset.startDate;
+        const initialEndDate = initialData.dataset.endDate;
+
+        // Функция форматирования даты
+        function formatDateForInput(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        // Устанавливаем начальные значения при загрузке
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Устанавливаем проект
+            if (initialProjectId) {
+                document.getElementById('projectSelect').value = initialProjectId;
+                await loadOperators(initialProjectId);
+                
+                if (initialOperatorId) {
+                    document.getElementById('operatorSelect').value = initialOperatorId;
+                }
+            }
+
+            // Устанавливаем активную кнопку периода
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                if (btn.dataset.period === initialPeriod) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Показываем кастомный период если нужно
+            if (initialPeriod === 'custom') {
+                document.getElementById('customDateRange').style.display = 'block';
+            }
+
+            // Устанавливаем даты
+            const today = new Date();
+            const sevenDaysAgo = new Date(today);
+            sevenDaysAgo.setDate(today.getDate() - 7);
+            
+            if (initialStartDate && initialEndDate) {
+                document.getElementById('startDate').value = initialStartDate;
+                document.getElementById('endDate').value = initialEndDate;
+            } else {
+                document.getElementById('startDate').value = formatDateForInput(sevenDaysAgo);
+                document.getElementById('endDate').value = formatDateForInput(today);
+            }
+
+            // Загружаем данные для графика
+            if (initialProjectId || initialOperatorId) {
+                loadChartData();
+            }
+        });
+
+        // Загрузка операторов при выборе проекта
+        document.getElementById('projectSelect').addEventListener('change', async function() {
+            const projectId = this.value;
+            if (projectId) {
+                await loadOperators(projectId);
+            } else {
+                const operatorSelect = document.getElementById('operatorSelect');
+                operatorSelect.innerHTML = '<option value="">Все операторы</option>';
+            }
+        });
+
+        async function loadOperators(projectId) {
+            try {
+                const response = await fetch(`/api/operators?project_id=${projectId}`);
+                const operators = await response.json();
+                
+                const operatorSelect = document.getElementById('operatorSelect');
+                operatorSelect.innerHTML = '<option value="">Все операторы</option>';
+                
+                operators.forEach(op => {
+                    const option = document.createElement('option');
+                    option.value = op.id;
+                    option.textContent = op.full_name;
+                    operatorSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Ошибка загрузки операторов:', error);
+            }
+        }
+
+        // Обработчики для кнопок периода
+        document.querySelectorAll('.period-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const period = this.dataset.period;
+                
+                if (period === 'custom') {
+                    document.getElementById('customDateRange').style.display = 'block';
+                } else {
+                    document.getElementById('customDateRange').style.display = 'none';
+                    
+                    // Устанавливаем даты в зависимости от периода
+                    const end = new Date();
+                    let start = new Date();
+                    
+                    switch(period) {
+                        case 'week':
+                            start.setDate(end.getDate() - 7);
+                            break;
+                        case 'month':
+                            start.setMonth(end.getMonth() - 1);
+                            break;
+                        case 'quarter':
+                            start.setMonth(end.getMonth() - 3);
+                            break;
+                    }
+                    
+                    document.getElementById('startDate').value = formatDateForInput(start);
+                    document.getElementById('endDate').value = formatDateForInput(end);
+                }
+            });
+        });
+
+        // Применение фильтров
+        document.getElementById('applyFilters').addEventListener('click', function() {
+            const projectId = document.getElementById('projectSelect').value;
+            const operatorId = document.getElementById('operatorSelect').value;
+            const period = document.querySelector('.period-btn.active').dataset.period;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            // Формируем URL с параметрами
+            let url = '/reports?';
+            if (projectId) url += `project_id=${projectId}&`;
+            if (operatorId) url += `operator_id=${operatorId}&`;
+            url += `period=${period}&`;
+            url += `start_date=${startDate}&end_date=${endDate}`;
+
+            window.location.href = url;
+        });
+
+        // Загрузка данных для графика
+        async function loadChartData() {
+            const projectId = document.getElementById('projectSelect').value;
+            const operatorId = document.getElementById('operatorSelect').value;
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+
+            if (!projectId && !operatorId) return;
+
+            let url;
+            if (operatorId) {
+                url = `/api/operator/${operatorId}/dynamics?start_date=${start}&end_date=${end}&interval=day`;
+            } else if (projectId) {
+                url = `/api/project/${projectId}/dynamics?start_date=${start}&end_date=${end}&interval=day`;
+            } else {
+                return;
+            }
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    updateChart(data);
+                    updateStats(data);
+                    document.getElementById('chartContainer').style.display = 'block';
+                    document.getElementById('statsGrid').style.display = 'grid';
+                } else {
+                    document.getElementById('chartContainer').style.display = 'none';
+                    document.getElementById('statsGrid').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
+            }
+        }
+
+        // Обновление графика
+        function updateChart(data) {
+            const ctx = document.getElementById('qualityChart').getContext('2d');
+            
+            if (qualityChart) {
+                qualityChart.destroy();
+            }
+
+            const labels = data.map(item => item.label || item.date);
+            const values = data.map(item => item.quality);
+            const counts = data.map(item => item.count);
+
+            qualityChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Качество %',
+                        data: values,
+                        borderColor: '#0066cc',
+                        backgroundColor: 'rgba(0,102,204,0.1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#0066cc',
+                        pointBorderColor: 'white',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'white',
+                            titleColor: '#0a1e3c',
+                            bodyColor: '#6c757d',
+                            borderColor: '#edf0f5',
+                            borderWidth: 1,
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    const count = counts[context.dataIndex];
+                                    return [`Качество: ${context.raw}%`, `Оценок: ${count}`];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: '#edf0f5' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Обновление статистики
+        function updateStats(data) {
+            if (!data || data.length === 0) return;
+
+            const validData = data.filter(d => d.count > 0);
+            const avgQuality = validData.reduce((sum, d) => sum + d.quality, 0) / validData.length;
+            const totalEvals = validData.reduce((sum, d) => sum + d.count, 0);
+            
+            document.getElementById('avgQuality').textContent = Math.round(avgQuality) + '%';
+            document.getElementById('evaluationsCount').textContent = totalEvals;
+            
+            const operatorSelect = document.getElementById('operatorSelect');
+            if (operatorSelect.value) {
+                document.getElementById('operatorsCount').textContent = '1';
+            } else {
+                const count = operatorSelect.options.length - 1;
+                document.getElementById('operatorsCount').textContent = count > 0 ? count : '0';
+            }
+        }
+    </script>
+</body>
+</html>

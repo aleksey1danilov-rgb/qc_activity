@@ -1,0 +1,1200 @@
+<!-- templates/operators.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Операторы | Оценка звонков</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            padding: 24px 32px;
+        }
+
+        .top-nav {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .project-badge {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            color: #5a5e6a;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            text-decoration: none;
+            color: #5a5e6a;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            color: #0066cc;
+        }
+
+        .nav-item.active {
+            color: #0066cc;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-item.active:after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0066cc;
+        }
+
+        .tickets-badge {
+            background: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .user-rating {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logout-btn:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .projects-strip {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .project-tag {
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: default;
+            text-decoration: none;
+        }
+
+        .project-tag.add {
+            background: #0066cc;
+            color: white;
+            cursor: pointer;
+        }
+
+        .project-tag.all {
+            background: #ffffff;
+            color: #2c3e50;
+            border: 1px solid #d0d7de;
+            cursor: pointer;
+        }
+
+        .operators-container {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+
+        .operators-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .operators-header h1 {
+            font-size: 28px;
+            color: #0a1e3c;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 10px 16px;
+            border: 2px solid #edf0f5;
+            border-radius: 30px;
+            font-size: 14px;
+            background: white;
+            min-width: 200px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0052a3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,102,204,0.2);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #0066cc;
+            color: #0066cc;
+        }
+
+        .btn-outline:hover {
+            background: #e6f0ff;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+            border: 1px solid #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .operators-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .operators-table th {
+            text-align: left;
+            padding: 16px 0;
+            color: #6c757d;
+            font-weight: 500;
+            font-size: 13px;
+            border-bottom: 2px solid #edf0f5;
+        }
+
+        .operators-table td {
+            padding: 20px 0;
+            border-bottom: 1px solid #f0f3f8;
+            vertical-align: middle;
+        }
+
+        .operator-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .operator-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+            transition: transform 0.2s;
+        }
+
+        .operator-avatar:hover {
+            transform: scale(1.05);
+        }
+
+        .operator-info {
+            flex: 1;
+        }
+
+        .operator-name {
+            font-weight: 600;
+            color: #0b1f3a;
+            margin-bottom: 4px;
+            font-size: 16px;
+        }
+
+        .operator-login {
+            font-size: 12px;
+            color: #8a94a6;
+        }
+
+        .project-tag {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .quality-badge {
+            background: #e6f7e6;
+            color: #0b6b0b;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .quality-badge-low {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .experience-badge {
+            background: #fff3cd;
+            color: #856404;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .btn-icon {
+            padding: 8px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid #d0d7de;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            color: #2c3e50;
+        }
+
+        .btn-icon:hover {
+            background: #f8f9fa;
+            border-color: #0066cc;
+            color: #0066cc;
+        }
+
+        .btn-icon.details {
+            border-color: #0066cc;
+            color: #0066cc;
+        }
+
+        .btn-icon.details:hover {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-icon.delete {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .btn-icon.delete:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: #6c757d;
+            background: #f8f9fa;
+            border-radius: 16px;
+        }
+
+        .empty-state div:first-child {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 8px;
+            color: #0a1e3c;
+        }
+
+        /* Стили для модального окна */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            overflow: hidden;
+        }
+
+        .modal-confirm {
+            border-top: 4px solid #dc3545;
+        }
+
+        .modal-create {
+            border-top: 4px solid #0066cc;
+        }
+
+        .modal-header {
+            padding: 24px 24px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .modal-icon.confirm {
+            background: #fee;
+            color: #dc3545;
+        }
+
+        .modal-icon.create {
+            background: #e6f0ff;
+            color: #0066cc;
+        }
+
+        .modal-icon.delete {
+            background: #fee;
+            color: #dc3545;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #0a1e3c;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .modal-content {
+            padding: 0 24px 24px;
+        }
+
+        .modal-text {
+            color: #2c3e50;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            text-align: center;
+        }
+
+        .modal-btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            background: #0052a3;
+        }
+
+        .modal-btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .modal-btn-danger:hover {
+            background: #c82333;
+        }
+
+        .modal-btn-secondary {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #d0d7de;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .modal-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 16px 0;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .modal-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .modal-timer {
+            text-align: center;
+            color: #6c757d;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+
+        .modal-progress {
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            margin-top: 16px;
+            overflow: hidden;
+        }
+
+        .modal-progress-bar {
+            height: 100%;
+            width: 100%;
+            background: #0066cc;
+            animation: progress 3s linear;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #0b1f3a;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #edf0f5;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        @media (max-width: 1200px) {
+            .nav-links {
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .nav-links {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+            .operators-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            .filters {
+                width: 100%;
+                flex-direction: column;
+            }
+            .filter-select {
+                width: 100%;
+            }
+            .operators-table {
+                display: block;
+                overflow-x: auto;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+            .top-nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .nav-links {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+            .nav-item.active:after {
+                bottom: -5px;
+            }
+            .user-rating {
+                margin-left: 0;
+                width: 100%;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Модальное окно подтверждения выхода -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal modal-confirm">
+            <div class="modal-header">
+                <div class="modal-icon confirm">
+                    ⚠️
+                </div>
+                <div>
+                    <div class="modal-title">Выход из профиля</div>
+                    <div class="modal-subtitle">Подтверждение действия</div>
+                </div>
+            </div>
+            <div class="modal-content">
+                <div class="modal-text">
+                    Вы действительно хотите выйти из системы? Все несохраненные данные будут потеряны.
+                </div>
+                
+                <div class="modal-checkbox">
+                    <input type="checkbox" id="saveSession">
+                    <label for="saveSession">Запомнить меня на этом устройстве</label>
+                </div>
+
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-secondary" onclick="closeLogoutModal()">
+                        Отмена
+                    </button>
+                    <button class="modal-btn modal-btn-danger" onclick="confirmLogout()">
+                        Выйти
+                    </button>
+                </div>
+
+                <div class="modal-timer">
+                    Окно закроется через <span id="timer">5</span> сек
+                </div>
+                <div class="modal-progress">
+                    <div class="modal-progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения удаления оператора -->
+    <div class="modal-overlay" id="deleteOperatorModal">
+        <div class="modal modal-confirm">
+            <div class="modal-header">
+                <div class="modal-icon delete">
+                    🗑️
+                </div>
+                <div>
+                    <div class="modal-title">Удаление оператора</div>
+                    <div class="modal-subtitle">Подтверждение действия</div>
+                </div>
+            </div>
+            <div class="modal-content">
+                <div class="modal-text" id="deleteOperatorText">
+                    Вы действительно хотите удалить оператора?
+                </div>
+                
+                <input type="hidden" id="deleteOperatorId">
+                
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-secondary" onclick="closeDeleteOperatorModal()">
+                        Отмена
+                    </button>
+                    <button class="modal-btn modal-btn-danger" onclick="confirmDeleteOperator()">
+                        Удалить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="top-nav">
+        <div class="project-badge">Оценка звонков • Контроль качества</div>
+        <div class="nav-links">
+            <a href="/" class="nav-item {% if request.url.path == '/' %}active{% endif %}">Дашборд</a>
+            <a href="/operators" class="nav-item {% if request.url.path == '/operators' %}active{% endif %}">Операторы</a>
+            <a href="/projects" class="nav-item {% if request.url.path == '/projects' %}active{% endif %}">Проекты</a>
+            <a href="/evaluations" class="nav-item {% if request.url.path == '/evaluations' %}active{% endif %}">Оцененные звонки</a>
+            <a href="/reports" class="nav-item {% if request.url.path == '/reports' %}active{% endif %}">Отчеты</a>
+            <a href="/tickets" class="nav-item {% if request.url.path == '/tickets' %}active{% endif %}">
+                Тикеты на проработку
+                <span class="tickets-badge">{{ tickets_count|default(0) }}</span>
+            </a>
+            <a href="/auth/profile" class="nav-item {% if request.url.path == '/auth/profile' %}active{% endif %}">Профиль</a>
+            {% if user and user.role == 'admin' %}
+            <a href="/admin" class="nav-item {% if request.url.path == '/admin' %}active{% endif %}">Админ</a>
+            {% endif %}
+        </div>
+        <div class="user-rating">
+            <div class="user-info">
+                <div class="user-avatar">
+                    {% if user and user.avatar_letters %}
+                        {{ user.avatar_letters }}
+                    {% elif user and user.full_name %}
+                        {{ user.full_name[:2]|upper }}
+                    {% else %}
+                        АД
+                    {% endif %}
+                </div>
+                <span style="font-size: 14px; font-weight: 500;">
+                    {% if user and user.full_name %}
+                        {{ user.full_name.split()[0] }}
+                    {% else %}
+                        Админ
+                    {% endif %}
+                </span>
+            </div>
+            <button class="logout-btn" type="button" onclick="showLogoutModal()">
+                🚪 Выйти
+            </button>
+        </div>
+    </div>
+
+    <!-- Проекты -->
+    <div class="projects-strip">
+        {% for project in projects %}
+            <a href="/project/{{ project.id }}" class="project-tag" style="background: #f0f3fa;">
+                📁 {{ project.name }}
+            </a>
+        {% else %}
+            <span class="project-tag" style="background: #f0f3fa;">📁 Нет проектов</span>
+        {% endfor %}
+        
+        {% if user and user.role in ['admin', 'controller'] %}
+        <span class="project-tag add" onclick="window.location.href='/projects'">➕ Добавить проект</span>
+        {% endif %}
+        
+        <span class="project-tag all" onclick="window.location.href='/projects'">
+            📋 Все проекты ({{ projects|length }})
+        </span>
+    </div>
+
+    <div class="operators-container">
+        <div class="operators-header">
+            <h1>
+                <span>👥</span>
+                Операторы
+            </h1>
+            <div class="filters">
+                <select class="filter-select" id="projectFilter">
+                    <option value="">Все проекты</option>
+                    {% for project in projects %}
+                    <option value="{{ project.id }}" {% if selected_project == project.id %}selected{% endif %}>
+                        {{ project.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                {% if user and user.role in ['admin', 'controller'] %}
+                <button class="btn btn-primary" id="addOperatorBtn">
+                    ➕ Добавить оператора
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if operators %}
+        <div style="overflow-x: auto;">
+            <table class="operators-table">
+                <thead>
+                    <tr>
+                        <th>Оператор</th>
+                        <th>Проект</th>
+                        <th>Качество</th>
+                        <th>Оценок</th>
+                        <th>Стаж</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for operator in operators %}
+                    <tr>
+                        <td>
+                            <a href="/operator/{{ operator.id }}" style="text-decoration: none; color: inherit;">
+                                <div class="operator-cell">
+                                    <div class="operator-avatar">
+                                        {{ operator.avatar_letters or operator.full_name[:2] }}
+                                    </div>
+                                    <div class="operator-info">
+                                        <div class="operator-name">{{ operator.full_name }}</div>
+                                        <div class="operator-login">{{ operator.login }}</div>
+                                    </div>
+                                </div>
+                            </a>
+                        </td>
+                        <td>
+                            <span class="project-tag">{{ operator.project.name }}</span>
+                        </td>
+                        <td>
+                            {% if operator.avg_quality_30d %}
+                                {% if operator.avg_quality_30d < 70 %}
+                                    <span class="quality-badge quality-badge-low">{{ operator.avg_quality_30d|round|int }}%</span>
+                                {% else %}
+                                    <span class="quality-badge">{{ operator.avg_quality_30d|round|int }}%</span>
+                                {% endif %}
+                            {% else %}
+                                <span style="color: #8a94a6;">—</span>
+                            {% endif %}
+                        </td>
+                        <td style="color: #6c757d; font-weight: 500; text-align: center;">
+                            {{ operator.evaluations_count_30d or 0 }}
+                        </td>
+                        <td>
+                            {% if operator.hire_date %}
+                            <span class="experience-badge">
+                                {{ operator.experience_days }} дней
+                            </span>
+                            {% else %}
+                            <span style="color: #8a94a6;">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="/operator/{{ operator.id }}" class="btn-icon details">
+                                    <span style="font-size: 16px;">👤</span> Подробнее
+                                </a>
+                                <a href="/evaluate/{{ operator.id }}" class="btn-icon">
+                                    <span style="font-size: 16px;">🎤</span> Оценить
+                                </a>
+                                {% if user and user.role in ['admin', 'controller'] %}
+                                <button class="btn-icon delete" 
+                                        data-operator-id="{{ operator.id }}" 
+                                        data-operator-name="{{ operator.full_name }}">
+                                    <span style="font-size: 16px;">🗑️</span> Удалить
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div>👤</div>
+            <h3>Нет операторов</h3>
+            <p style="margin-bottom: 20px; color: #6c757d;">Добавьте первого оператора для начала работы</p>
+            {% if user and user.role in ['admin', 'controller'] %}
+            <button class="btn btn-primary" id="emptyStateAddBtn">
+                ➕ Добавить оператора
+            </button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Модальное окно создания оператора -->
+    <div id="createOperatorModal" class="modal-overlay">
+        <div class="modal modal-create">
+            <div class="modal-header">
+                <div class="modal-icon create">
+                    ➕
+                </div>
+                <div>
+                    <div class="modal-title">Добавить оператора</div>
+                    <div class="modal-subtitle">Новый сотрудник для оценки звонков</div>
+                </div>
+            </div>
+            
+            <div class="modal-content">
+                <form id="createOperatorForm">
+                    <div class="form-group">
+                        <label>👤 Полное имя</label>
+                        <input type="text" name="full_name" placeholder="Иванов Иван" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>🔑 Логин</label>
+                        <input type="text" name="login" placeholder="@ivan.ivanov" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📁 Проект</label>
+                        <select name="project_id" required>
+                            <option value="">Выберите проект</option>
+                            {% for project in projects %}
+                            <option value="{{ project.id }}">{{ project.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📅 Дата выхода</label>
+                        <input type="date" name="hire_date" id="hireDate" required>
+                    </div>
+                    
+                    <div class="modal-buttons">
+                        <button type="button" class="modal-btn modal-btn-secondary" id="closeModalBtn">Отмена</button>
+                        <button type="submit" class="modal-btn modal-btn-primary">Добавить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Таймер для модального окна выхода
+        let timerInterval;
+
+        function showLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.add('active');
+            
+            let timeLeft = 5;
+            const timerElement = document.getElementById('timer');
+            
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    confirmLogout();
+                }
+            }, 1000);
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.remove('active');
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function confirmLogout() {
+            closeLogoutModal();
+            window.location.href = '/auth/logout';
+        }
+
+        // Функции для модального окна удаления оператора
+        function openDeleteOperatorModal(operatorId, operatorName) {
+            document.getElementById('deleteOperatorId').value = operatorId;
+            document.getElementById('deleteOperatorText').innerHTML = 
+                `Вы действительно хотите удалить оператора <strong>${operatorName}</strong>? Все связанные оценки также будут помечены как неактивные.`;
+            document.getElementById('deleteOperatorModal').classList.add('active');
+        }
+
+        function closeDeleteOperatorModal() {
+            document.getElementById('deleteOperatorModal').classList.remove('active');
+            document.getElementById('deleteOperatorId').value = '';
+        }
+
+        async function confirmDeleteOperator() {
+            const operatorId = document.getElementById('deleteOperatorId').value;
+            
+            if (!operatorId) return;
+            
+            try {
+                const response = await fetch(`/api/operator/${operatorId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    closeDeleteOperatorModal();
+                    location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('❌ Ошибка: ' + (error.detail || 'Не удалось удалить оператора'));
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('❌ Ошибка сети');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Элементы
+            const projectFilter = document.getElementById('projectFilter');
+            const addOperatorBtn = document.getElementById('addOperatorBtn');
+            const emptyStateAddBtn = document.getElementById('emptyStateAddBtn');
+            const createOperatorModal = document.getElementById('createOperatorModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const form = document.getElementById('createOperatorForm');
+            const hireDateInput = document.getElementById('hireDate');
+
+            // Установка сегодняшней даты
+            if (hireDateInput) {
+                const today = new Date().toISOString().split('T')[0];
+                hireDateInput.value = today;
+            }
+
+            // Фильтр по проекту
+            if (projectFilter) {
+                projectFilter.addEventListener('change', function() {
+                    const projectId = this.value;
+                    if (projectId) {
+                        window.location.href = `/operators?project_id=${projectId}`;
+                    } else {
+                        window.location.href = '/operators';
+                    }
+                });
+            }
+
+            // Обработчики для кнопок удаления
+            document.querySelectorAll('.delete').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const operatorId = this.dataset.operatorId;
+                    const operatorName = this.dataset.operatorName;
+                    openDeleteOperatorModal(operatorId, operatorName);
+                });
+            });
+
+            // Открытие модального окна создания оператора
+            function openCreateOperatorModal() {
+                if (createOperatorModal) {
+                    createOperatorModal.classList.add('active');
+                }
+            }
+
+            // Закрытие модального окна создания оператора
+            function closeCreateOperatorModal() {
+                if (createOperatorModal) {
+                    createOperatorModal.classList.remove('active');
+                }
+                if (form) {
+                    form.reset();
+                    if (hireDateInput) {
+                        hireDateInput.value = new Date().toISOString().split('T')[0];
+                    }
+                }
+            }
+
+            // Обработчики открытия
+            if (addOperatorBtn) {
+                addOperatorBtn.addEventListener('click', openCreateOperatorModal);
+            }
+            if (emptyStateAddBtn) {
+                emptyStateAddBtn.addEventListener('click', openCreateOperatorModal);
+            }
+
+            // Обработчик закрытия
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', closeCreateOperatorModal);
+            }
+
+            // Закрытие по клику вне модалки создания оператора
+            window.addEventListener('click', function(event) {
+                if (event.target === createOperatorModal) {
+                    closeCreateOperatorModal();
+                }
+                if (event.target === document.getElementById('deleteOperatorModal')) {
+                    closeDeleteOperatorModal();
+                }
+            });
+
+            // Закрытие по ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                        modal.classList.remove('active');
+                        if (modal.id === 'logoutModal' && timerInterval) {
+                            clearInterval(timerInterval);
+                        }
+                    });
+                }
+            });
+
+            // Отправка формы
+            if (form) {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(this);
+                    const data = {
+                        full_name: formData.get('full_name'),
+                        login: formData.get('login'),
+                        project_id: parseInt(formData.get('project_id')),
+                        hire_date: formData.get('hire_date')
+                    };
+
+                    // Валидация
+                    if (!data.full_name || !data.login || !data.project_id || !data.hire_date) {
+                        alert('❌ Заполните все поля');
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('/api/operator/create', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                        });
+
+                        if (response.ok) {
+                            closeCreateOperatorModal();
+                            location.reload();
+                        } else {
+                            const error = await response.json();
+                            alert('❌ ' + (error.detail || 'Ошибка добавления оператора'));
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('❌ Ошибка сети');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

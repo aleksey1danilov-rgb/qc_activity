@@ -1,0 +1,1248 @@
+<!-- templates/metrics.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление метриками | {% if project %}{{ project.name }}{% else %}Проект{% endif %}</title>
+    <style>
+        /* ВЕСЬ СТИЛЬ БЕЗ ИЗМЕНЕНИЙ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            padding: 24px 32px;
+        }
+
+        .top-nav {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .project-badge {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            color: #5a5e6a;
+            font-size: 14px;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            text-decoration: none;
+            color: #5a5e6a;
+        }
+
+        .nav-item:hover {
+            color: #0066cc;
+        }
+
+        .nav-item.active {
+            color: #0066cc;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-item.active:after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0066cc;
+        }
+
+        .user-rating {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+
+        .metrics-container {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+
+        .metrics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .metrics-header h1 {
+            font-size: 24px;
+            color: #0a1e3c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .project-info {
+            background: #f8faff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 32px;
+            border-left: 4px solid #0066cc;
+        }
+
+        .project-info h2 {
+            color: #1e3a8a;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .project-info p {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0052a3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,102,204,0.2);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #d0d7de;
+            color: #2c3e50;
+        }
+
+        .btn-outline:hover {
+            background: #f8f9fa;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        /* ИНФОРМАЦИОННЫЙ БЛОК О КРИТИЧНЫХ МЕТРИКАХ */
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #0066cc;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .info-box h4 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+
+        .info-box ul {
+            margin-bottom: 0;
+            padding-left: 20px;
+        }
+
+        .info-box li {
+            margin-bottom: 4px;
+        }
+
+        /* СТИЛИ ДЛЯ БЛОКОВ */
+        .blocks-container {
+            margin-top: 24px;
+        }
+
+        .block-card {
+            background: #f8faff;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 2px solid #e0e7ff;
+        }
+
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #d0d7de;
+        }
+
+        .block-title h3 {
+            font-size: 20px;
+            color: #0a1e3c;
+        }
+
+        .block-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .block-description {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 16px;
+        }
+
+        .metric-card {
+            background: white;
+            border: 2px solid #edf0f5;
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .metric-card:hover {
+            border-color: #0066cc;
+            box-shadow: 0 4px 12px rgba(0,102,204,0.1);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .metric-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0a1e3c;
+        }
+
+        .metric-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 2px 8px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-max {
+            background: #e8eaf6;
+            color: #1a237e;
+        }
+
+        .badge-critical {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .badge-reset {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .badge-penalty {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .badge-inactive {
+            background: #eceff1;
+            color: #546e7a;
+        }
+
+        .metric-description {
+            color: #6c757d;
+            font-size: 13px;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .metric-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .btn-icon {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid #d0d7de;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-icon:hover {
+            background: #f8f9fa;
+            border-color: #0066cc;
+        }
+
+        .btn-icon.delete:hover {
+            background: #fff5f5;
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .empty-block {
+            text-align: center;
+            padding: 40px 24px;
+            color: #6c757d;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin-top: 16px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: #6c757d;
+            background: #f8f9fa;
+            border-radius: 16px;
+            margin-top: 24px;
+        }
+
+        .empty-state div:first-child {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 8px;
+            color: #0a1e3c;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            margin-bottom: 24px;
+        }
+
+        .modal-header h2 {
+            color: #0a1e3c;
+            margin-bottom: 8px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-header p {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #0b1f3a;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #edf0f5;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: #fafbfc;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #0066cc;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0,102,204,0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+
+        .penalty-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+            padding: 16px;
+            background: #f8faff;
+            border-radius: 12px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .back-link:hover {
+            color: #0066cc;
+        }
+
+        .error-message {
+            background: #fff5f5;
+            border: 1px solid #ffccc7;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            color: #dc3545;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        <div class="project-badge">Оценка звонков • Метрики</div>
+        <div class="nav-links">
+            <a href="/" class="nav-item">Дашборд</a>
+            <a href="/operators" class="nav-item">Операторы</a>
+            <a href="/projects" class="nav-item active">Проекты</a>
+            <a href="/reports" class="nav-item">Отчеты</a>
+            <a href="/auth/profile" class="nav-item">Профиль</a>
+            {% if user and user.role == 'admin' %}
+            <a href="/admin" class="nav-item">Админ</a>
+            {% endif %}
+        </div>
+        <div class="user-rating">
+            <div class="user-info">
+                <div class="user-avatar">
+                    {% if user and user.avatar_letters %}
+                        {{ user.avatar_letters }}
+                    {% elif user and user.full_name %}
+                        {{ user.full_name[:2]|upper }}
+                    {% else %}
+                        АД
+                    {% endif %}
+                </div>
+                <span style="font-size: 14px; font-weight: 500;">
+                    {% if user and user.full_name %}
+                        {{ user.full_name.split()[0] }}
+                    {% else %}
+                        Админ
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Главный контейнер с ID проекта -->
+    <div id="metricsContainer" 
+         class="metrics-container" 
+         {% if project %}data-project-id="{{ project.id }}"{% endif %}>
+        
+        {% if project %}
+        <a href="/project/{{ project.id }}" class="back-link">
+            ← Назад к проекту
+        </a>
+
+        <div class="metrics-header">
+            <h1>
+                <span>📊</span> 
+                Метрики проекта: {{ project.name }}
+            </h1>
+            <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-outline" id="addBlockBtn">
+                    <span>📦</span> Добавить блок
+                </button>
+                <button type="button" class="btn btn-primary" id="addMetricBtn">
+                    <span>➕</span> Добавить метрику
+                </button>
+            </div>
+        </div>
+
+        <div class="project-info">
+            <h2>{{ project.name }}</h2>
+            <p>{% if project.description %}{{ project.description }}{% else %}Нет описания{% endif %}</p>
+            <div style="margin-top: 12px; display: flex; gap: 16px; flex-wrap: wrap;">
+                <span style="font-size: 13px; color: #1e3a8a;">
+                    📦 Блоков: {% if blocks %}{{ blocks|length }}{% else %}0{% endif %}
+                </span>
+                <span style="font-size: 13px; color: #1e3a8a;">
+                    📏 Всего метрик: {% if metrics %}{{ metrics|length }}{% else %}0{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- НОВЫЙ БЛОК: Информация о критичных метриках -->
+        <div class="info-box">
+            <h4>ℹ️ О критичных метриках</h4>
+            <p>Критичные метрики с max_score = 0 работают следующим образом:</p>
+            <ul>
+                <li><strong>Если метрика выполнена (ДА):</strong> не добавляет баллов (0/max), но и не штрафует</li>
+                <li><strong>Если метрика НЕ выполнена (НЕТ):</strong> применяется штраф (если указан) или обнуление блока</li>
+                <li><strong>Рекомендация:</strong> для критичных метрик устанавливайте max_score = 0</li>
+            </ul>
+        </div>
+
+        {% if blocks and blocks|length > 0 %}
+        <div class="blocks-container">
+            {% for block in blocks %}
+            <div class="block-card" data-block-id="{{ block.id }}">
+                <div class="block-header">
+                    <div class="block-title">
+                        <h3>{{ block.name }}</h3>
+                    </div>
+                    <div class="block-actions">
+                        <button type="button" class="btn-icon edit-block" data-block-id="{{ block.id }}">
+                            ✏️ Ред.
+                        </button>
+                        <button type="button" class="btn-icon delete delete-block" data-block-id="{{ block.id }}">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+                {% if block.description %}
+                <div class="block-description">
+                    {{ block.description }}
+                </div>
+                {% endif %}
+
+                <!-- Метрики блока -->
+                {% set block_metrics = metrics|selectattr('block_id', 'equalto', block.id)|list %}
+                {% if block_metrics and block_metrics|length > 0 %}
+                <div class="metrics-grid">
+                    {% for metric in block_metrics %}
+                    <div class="metric-card" 
+                         data-metric-id="{{ metric.id }}" 
+                         data-block-id="{{ block.id }}"
+                         data-order="{{ metric.display_order if metric.display_order else loop.index }}">
+                        <div class="metric-header">
+                            <span class="metric-name">{{ metric.name }}</span>
+                            <div class="metric-badges">
+                                <span class="badge badge-max">max {{ metric.max_score|default(5) }}</span>
+                                {% if metric.is_critical %}
+                                <span class="badge badge-critical">критичная</span>
+                                {% endif %}
+                                {% if metric.resets_block %}
+                                <span class="badge badge-reset">обнуляет блок</span>
+                                {% endif %}
+                                {% if metric.penalty_type %}
+                                <span class="badge badge-penalty">
+                                    штраф {{ metric.penalty_value }}% 
+                                    {% if metric.penalty_type == 'total' %}от общ{% else %}от блока{% endif %}
+                                </span>
+                                {% endif %}
+                                {% if metric.max_score == 0 %}
+                                <span class="badge badge-critical" style="background: #9c27b0; color: white;">индикатор</span>
+                                {% endif %}
+                                {% if metric.is_active == False %}
+                                <span class="badge badge-inactive">неактивна</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if metric.description %}
+                        <div class="metric-description">
+                            {{ metric.description }}
+                        </div>
+                        {% endif %}
+                        <div class="metric-actions">
+                            <button type="button" class="btn-icon edit-metric" data-metric-id="{{ metric.id }}">
+                                ✏️ Ред.
+                            </button>
+                            <button type="button" class="btn-icon delete delete-metric" data-metric-id="{{ metric.id }}">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-block">
+                    <p>В этом блоке пока нет метрик</p>
+                    <button type="button" class="btn btn-outline add-metric-to-block" style="margin-top: 12px;" 
+                            data-block-id="{{ block.id }}">
+                        ➕ Добавить метрику в блок
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div>📦</div>
+            <h3>Нет блоков метрик</h3>
+            <p style="margin-bottom: 20px;">Создайте первый блок для проекта {{ project.name }}</p>
+            <button type="button" class="btn btn-primary" id="emptyStateAddBlockBtn">
+                ➕ Создать блок
+            </button>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="error-message">
+            ❌ Проект не найден
+        </div>
+        <a href="/projects" class="btn btn-outline">Вернуться к проектам</a>
+        {% endif %}
+    </div>
+
+    <!-- Модальное окно добавления/редактирования блока -->
+    <div id="blockModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="blockModalTitle">
+                    <span>📦</span> 
+                    Добавить блок
+                </h2>
+                <p id="blockModalDescription">Создайте новый блок метрик для группировки критериев</p>
+            </div>
+            
+            <form id="blockForm">
+                <input type="hidden" name="block_id" id="blockId" value="">
+                
+                <div class="form-group">
+                    <label>📦 Название блока</label>
+                    <input type="text" name="name" id="blockName" placeholder="Например: Оценка звонка" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>📝 Описание (необязательно)</label>
+                    <textarea name="description" id="blockDescription" rows="2" placeholder="Что входит в этот блок..."></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" id="closeBlockModalBtn">Отмена</button>
+                    <button type="submit" class="btn btn-primary" id="submitBlockBtn">Создать блок</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно добавления/редактирования метрики -->
+    <div id="metricModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">
+                    <span>➕</span> 
+                    Добавить метрику
+                </h2>
+                <p id="modalDescription">Создайте новый критерий оценки</p>
+            </div>
+            
+            <form id="metricForm">
+                <input type="hidden" name="metric_id" id="metricId" value="">
+                <input type="hidden" name="block_id" id="metricBlockId" value="">
+                
+                <div class="form-group">
+                    <label>📦 Блок метрик</label>
+                    <select name="block_id_select" id="metricBlockSelect" required>
+                        <option value="">Выберите блок</option>
+                        {% if blocks %}
+                            {% for block in blocks %}
+                            <option value="{{ block.id }}">{{ block.name }}</option>
+                            {% endfor %}
+                        {% endif %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>📏 Название метрики</label>
+                    <input type="text" name="name" id="metricName" placeholder="Например: Приветствие" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>📝 Описание (необязательно)</label>
+                    <textarea name="description" id="metricDescription" rows="2" placeholder="Что именно оцениваем..."></textarea>
+                </div>
+                
+                <!-- ИЗМЕНЕНО: Добавлена возможность выбрать 0 баллов -->
+                <div class="form-group">
+                    <label>🎯 Максимальный балл</label>
+                    <select name="max_score" id="metricMaxScore">
+                        <option value="0">0 (индикатор/критичная метрика)</option>
+                        <option value="1">1 балл</option>
+                        <option value="2">2 балла</option>
+                        <option value="3">3 балла</option>
+                        <option value="5" selected>5 баллов</option>
+                        <option value="10">10 баллов</option>
+                    </select>
+                    <small style="color: #6c757d; display: block; margin-top: 4px;">Для критичных метрик рекомендуется 0 баллов</small>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" name="is_critical" id="metricIsCritical">
+                    <label for="metricIsCritical">⚠️ Критичная метрика (штраф при невыполнении)</label>
+                </div>
+
+                <!-- Блок настроек штрафа (показывается если is_critical) -->
+                <div id="penaltySettings" style="display: none;">
+                    <div class="penalty-row">
+                        <div class="form-group">
+                            <label>Тип штрафа</label>
+                            <select name="penalty_type" id="metricPenaltyType">
+                                <option value="block">От оценки блока</option>
+                                <option value="total">От общей оценки</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Размер штрафа %</label>
+                            <input type="number" name="penalty_value" id="metricPenaltyValue" min="1" max="100" value="20">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" name="resets_block" id="metricResetsBlock">
+                    <label for="metricResetsBlock">🔄 Обнуляет весь блок при невыполнении</label>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" name="is_active" id="metricIsActive" checked>
+                    <label for="metricIsActive">✅ Метрика активна</label>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" id="closeMetricModalBtn">Отмена</button>
+                    <button type="submit" class="btn btn-primary" id="submitMetricBtn">Создать</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения удаления -->
+    <div id="confirmDeleteModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2 style="color: #dc3545;">⚠️ Подтверждение удаления</h2>
+            </div>
+            <p id="deleteModalMessage" style="margin-bottom: 24px; font-size: 15px;"></p>
+            <p style="color: #dc3545; font-size: 14px; margin-bottom: 24px; padding: 12px; background: #fff5f5; border-radius: 12px;">
+                Это действие нельзя отменить.
+            </p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-outline" id="closeDeleteModalBtn">Отмена</button>
+                <button type="button" class="btn btn-danger" id="deleteConfirmBtn">Удалить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ============== ПОЛУЧАЕМ ID ПРОЕКТА ==============
+            const container = document.getElementById('metricsContainer');
+            const PROJECT_ID = container ? container.dataset.projectId : null;
+            
+            let currentItemId = null;
+            let currentItemType = null; // 'block' или 'metric'
+
+            // ============== ФУНКЦИИ РАБОТЫ С МОДАЛКАМИ ==============
+            function openAddBlockModal() {
+                currentItemType = 'block';
+                document.getElementById('blockModalTitle').innerHTML = '<span>📦</span> Добавить блок';
+                document.getElementById('blockModalDescription').innerHTML = 'Создайте новый блок метрик';
+                document.getElementById('blockForm').reset();
+                document.getElementById('blockId').value = '';
+                document.getElementById('submitBlockBtn').innerHTML = 'Создать блок';
+                document.getElementById('blockModal').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+
+            function openAddMetricModal(blockId = null) {
+                currentItemType = 'metric';
+                document.getElementById('modalTitle').innerHTML = '<span>➕</span> Добавить метрику';
+                document.getElementById('modalDescription').innerHTML = 'Создайте новый критерий оценки';
+                document.getElementById('metricForm').reset();
+                document.getElementById('metricId').value = '';
+                document.getElementById('metricBlockId').value = blockId || '';
+                document.getElementById('metricBlockSelect').value = blockId || '';
+                document.getElementById('metricIsActive').checked = true;
+                document.getElementById('penaltySettings').style.display = 'none';
+                document.getElementById('submitMetricBtn').innerHTML = 'Создать';
+                document.getElementById('metricModal').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeBlockModal() {
+                document.getElementById('blockModal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+                document.getElementById('blockForm').reset();
+                currentItemId = null;
+            }
+
+            function closeMetricModal() {
+                document.getElementById('metricModal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+                document.getElementById('metricForm').reset();
+                document.getElementById('penaltySettings').style.display = 'none';
+                currentItemId = null;
+            }
+
+            function openDeleteModal(itemId, itemType, itemName) {
+                currentItemId = itemId;
+                currentItemType = itemType;
+                let message = '';
+                if (itemType === 'block') {
+                    message = `Вы уверены, что хотите удалить блок <strong>${itemName}</strong>? Все метрики в этом блоке также будут удалены.`;
+                } else {
+                    message = `Вы уверены, что хотите удалить метрику <strong>${itemName}</strong>?`;
+                }
+                document.getElementById('deleteModalMessage').innerHTML = message;
+                document.getElementById('confirmDeleteModal').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeDeleteModal() {
+                document.getElementById('confirmDeleteModal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+                currentItemId = null;
+                currentItemType = null;
+            }
+
+            // ============== API ЗАПРОСЫ ==============
+            async function editBlock(blockId) {
+                if (!PROJECT_ID) return;
+                
+                try {
+                    const response = await fetch(`/api/projects/${PROJECT_ID}/blocks`);
+                    if (!response.ok) throw new Error('Ошибка загрузки');
+                    const blocks = await response.json();
+                    const block = blocks.find(b => b.id === blockId);
+                    
+                    if (block) {
+                        currentItemType = 'block';
+                        document.getElementById('blockModalTitle').innerHTML = '<span>✏️</span> Редактировать блок';
+                        document.getElementById('blockModalDescription').innerHTML = 'Измените параметры блока';
+                        document.getElementById('blockId').value = block.id || '';
+                        document.getElementById('blockName').value = block.name || '';
+                        document.getElementById('blockDescription').value = block.description || '';
+                        document.getElementById('submitBlockBtn').innerHTML = 'Сохранить';
+                        document.getElementById('blockModal').style.display = 'flex';
+                        document.body.style.overflow = 'hidden';
+                    }
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                    alert('❌ Ошибка загрузки данных блока');
+                }
+            }
+
+            async function editMetric(metricId) {
+                if (!PROJECT_ID) return;
+                
+                try {
+                    const response = await fetch(`/api/projects/${PROJECT_ID}/metrics`);
+                    if (!response.ok) throw new Error('Ошибка загрузки');
+                    const metrics = await response.json();
+                    const metric = metrics.find(m => m.id === metricId);
+                    
+                    if (metric) {
+                        currentItemType = 'metric';
+                        document.getElementById('modalTitle').innerHTML = '<span>✏️</span> Редактировать метрику';
+                        document.getElementById('modalDescription').innerHTML = 'Измените параметры критерия';
+                        document.getElementById('metricId').value = metric.id || '';
+                        document.getElementById('metricBlockId').value = metric.block_id || '';
+                        document.getElementById('metricBlockSelect').value = metric.block_id || '';
+                        document.getElementById('metricName').value = metric.name || '';
+                        document.getElementById('metricDescription').value = metric.description || '';
+                        document.getElementById('metricMaxScore').value = metric.max_score || 5;
+                        document.getElementById('metricIsCritical').checked = metric.is_critical || false;
+                        document.getElementById('metricResetsBlock').checked = metric.resets_block || false;
+                        document.getElementById('metricIsActive').checked = metric.is_active !== false;
+                        
+                        if (metric.is_critical) {
+                            document.getElementById('penaltySettings').style.display = 'block';
+                            document.getElementById('metricPenaltyType').value = metric.penalty_type || 'block';
+                            document.getElementById('metricPenaltyValue').value = metric.penalty_value || 20;
+                        } else {
+                            document.getElementById('penaltySettings').style.display = 'none';
+                        }
+                        
+                        document.getElementById('submitMetricBtn').innerHTML = 'Сохранить';
+                        document.getElementById('metricModal').style.display = 'flex';
+                        document.body.style.overflow = 'hidden';
+                    }
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                    alert('❌ Ошибка загрузки данных метрики');
+                }
+            }
+
+            async function saveBlock(formData) {
+                if (!PROJECT_ID) return false;
+                
+                const blockId = formData.get('block_id');
+                const isEditing = !!blockId;
+                
+                const data = {
+                    name: formData.get('name'),
+                    description: formData.get('description') || ''
+                };
+
+                try {
+                    let response;
+                    if (isEditing) {
+                        response = await fetch(`/api/projects/${PROJECT_ID}/blocks/${blockId}`, {
+                            method: 'PUT',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify(data)
+                        });
+                    } else {
+                        response = await fetch(`/api/project/${PROJECT_ID}/blocks`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify(data)
+                        });
+                    }
+
+                    if (response.ok) {
+                        closeBlockModal();
+                        location.reload();
+                        return true;
+                    } else {
+                        const error = await response.json();
+                        alert('❌ ' + (error.detail || 'Ошибка сохранения'));
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                    alert('❌ Ошибка сети');
+                    return false;
+                }
+            }
+
+            async function saveMetric(formData) {
+                if (!PROJECT_ID) return false;
+                
+                const metricId = formData.get('metric_id');
+                const blockId = formData.get('block_id_select');
+                const isEditing = !!metricId;
+                
+                if (!blockId) {
+                    alert('❌ Выберите блок');
+                    return false;
+                }
+                
+                const data = {
+                    block_id: parseInt(blockId),
+                    name: formData.get('name'),
+                    description: formData.get('description') || '',
+                    max_score: parseInt(formData.get('max_score')) || 5,
+                    is_critical: formData.get('is_critical') === 'on',
+                    resets_block: formData.get('resets_block') === 'on',
+                    is_active: formData.get('is_active') === 'on'
+                };
+
+                if (data.is_critical) {
+                    data.penalty_type = formData.get('penalty_type') || 'block';
+                    data.penalty_value = parseInt(formData.get('penalty_value')) || 20;
+                }
+
+                try {
+                    let response;
+                    if (isEditing) {
+                        response = await fetch(`/api/metrics/${metricId}`, {
+                            method: 'PUT',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify(data)
+                        });
+                    } else {
+                        response = await fetch(`/api/project/${PROJECT_ID}/metrics`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify(data)
+                        });
+                    }
+
+                    if (response.ok) {
+                        closeMetricModal();
+                        location.reload();
+                        return true;
+                    } else {
+                        const error = await response.json();
+                        alert('❌ ' + (error.detail || 'Ошибка сохранения'));
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                    alert('❌ Ошибка сети');
+                    return false;
+                }
+            }
+
+            async function deleteItem() {
+                if (!currentItemId || !currentItemType) return;
+                
+                try {
+                    let url = '';
+                    if (currentItemType === 'block') {
+                        url = `/api/blocks/${currentItemId}`;
+                    } else {
+                        url = `/api/metrics/${currentItemId}`;
+                    }
+
+                    const response = await fetch(url, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        closeDeleteModal();
+                        location.reload();
+                    } else {
+                        const error = await response.json();
+                        alert('❌ ' + (error.detail || 'Ошибка удаления'));
+                    }
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                    alert('❌ Ошибка сети');
+                }
+            }
+
+            // ============== ИНИЦИАЛИЗАЦИЯ ==============
+            document.addEventListener('DOMContentLoaded', function() {
+                // Кнопки блоков
+                const addBlockBtn = document.getElementById('addBlockBtn');
+                if (addBlockBtn) addBlockBtn.addEventListener('click', openAddBlockModal);
+                
+                const emptyStateAddBlockBtn = document.getElementById('emptyStateAddBlockBtn');
+                if (emptyStateAddBlockBtn) emptyStateAddBlockBtn.addEventListener('click', openAddBlockModal);
+
+                // Кнопки редактирования блоков
+                document.querySelectorAll('.edit-block').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        const blockId = this.dataset.blockId;
+                        if (blockId) editBlock(parseInt(blockId));
+                    });
+                });
+
+                // Кнопки удаления блоков
+                document.querySelectorAll('.delete-block').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        const blockId = this.dataset.blockId;
+                        const blockName = this.closest('.block-card')?.querySelector('h3')?.innerText || 'блок';
+                        if (blockId) openDeleteModal(parseInt(blockId), 'block', blockName);
+                    });
+                });
+
+                // Кнопка добавления метрики
+                const addMetricBtn = document.getElementById('addMetricBtn');
+                if (addMetricBtn) {
+                    addMetricBtn.addEventListener('click', () => openAddMetricModal());
+                }
+
+                // Кнопки добавления метрики из пустого блока (data-атрибут)
+                document.querySelectorAll('.add-metric-to-block').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        const blockId = this.dataset.blockId;
+                        if (blockId) openAddMetricModal(parseInt(blockId));
+                    });
+                });
+
+                // Кнопки редактирования метрик
+                document.querySelectorAll('.edit-metric').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        const metricId = this.dataset.metricId;
+                        if (metricId) editMetric(parseInt(metricId));
+                    });
+                });
+
+                // Кнопки удаления метрик
+                document.querySelectorAll('.delete-metric').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        const metricId = this.dataset.metricId;
+                        const metricName = this.closest('.metric-card')?.querySelector('.metric-name')?.innerText || 'метрику';
+                        if (metricId) openDeleteModal(parseInt(metricId), 'metric', metricName);
+                    });
+                });
+
+                // Форма блока
+                const blockForm = document.getElementById('blockForm');
+                if (blockForm) {
+                    blockForm.addEventListener('submit', async function(e) {
+                        e.preventDefault();
+                        const formData = new FormData(this);
+                        await saveBlock(formData);
+                    });
+                }
+
+                // Форма метрики
+                const metricForm = document.getElementById('metricForm');
+                if (metricForm) {
+                    metricForm.addEventListener('submit', async function(e) {
+                        e.preventDefault();
+                        const formData = new FormData(this);
+                        await saveMetric(formData);
+                    });
+                }
+
+                // Показывать/скрывать настройки штрафа
+                const isCriticalCheckbox = document.getElementById('metricIsCritical');
+                if (isCriticalCheckbox) {
+                    isCriticalCheckbox.addEventListener('change', function() {
+                        const penaltySettings = document.getElementById('penaltySettings');
+                        const maxScoreSelect = document.getElementById('metricMaxScore');
+                        
+                        if (this.checked) {
+                            penaltySettings.style.display = 'block';
+                            // Подсказываем, что для критичных метрик лучше 0
+                            if (maxScoreSelect.value !== '0') {
+                                if (confirm('Для критичных метрик рекомендуется устанавливать 0 баллов. Установить 0?')) {
+                                    maxScoreSelect.value = '0';
+                                }
+                            }
+                        } else {
+                            penaltySettings.style.display = 'none';
+                        }
+                    });
+                }
+
+                // Кнопки закрытия модалок
+                document.getElementById('closeBlockModalBtn')?.addEventListener('click', closeBlockModal);
+                document.getElementById('closeMetricModalBtn')?.addEventListener('click', closeMetricModal);
+                document.getElementById('closeDeleteModalBtn')?.addEventListener('click', closeDeleteModal);
+
+                // Кнопка подтверждения удаления
+                document.getElementById('deleteConfirmBtn')?.addEventListener('click', deleteItem);
+            });
+
+            // ============== ЗАКРЫТИЕ ПО КЛИКУ ВНЕ МОДАЛКИ ==============
+            window.onclick = function(event) {
+                const blockModal = document.getElementById('blockModal');
+                const metricModal = document.getElementById('metricModal');
+                const deleteModal = document.getElementById('confirmDeleteModal');
+                
+                if (event.target == blockModal) closeBlockModal();
+                if (event.target == metricModal) closeMetricModal();
+                if (event.target == deleteModal) closeDeleteModal();
+            };
+
+            // ============== ЗАКРЫТИЕ ПО ESC ==============
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeBlockModal();
+                    closeMetricModal();
+                    closeDeleteModal();
+                }
+            });
+
+            // Делаем функцию openAddMetricModal глобальной для вызова из HTML
+            window.openAddMetricModal = openAddMetricModal;
+        })();
+    </script>
+</body>
+</html>

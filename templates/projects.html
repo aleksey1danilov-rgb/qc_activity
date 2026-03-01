@@ -1,0 +1,890 @@
+<!-- templates/projects.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проекты | Оценка звонков</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            padding: 24px 32px;
+        }
+
+        .top-nav {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .project-badge {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            color: #5a5e6a;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            text-decoration: none;
+            color: #5a5e6a;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            color: #0066cc;
+        }
+
+        .nav-item.active {
+            color: #0066cc;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-item.active:after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0066cc;
+        }
+
+        .tickets-badge {
+            background: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .user-rating {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logout-btn:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .projects-strip {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .project-tag {
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: default;
+            text-decoration: none;
+        }
+
+        .project-tag.add {
+            background: #0066cc;
+            color: white;
+            cursor: pointer;
+        }
+
+        .project-tag.all {
+            background: #ffffff;
+            color: #2c3e50;
+            border: 1px solid #d0d7de;
+            cursor: pointer;
+        }
+
+        .projects-container {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+
+        .projects-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .projects-header h1 {
+            font-size: 28px;
+            color: #0a1e3c;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0052a3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,102,204,0.2);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #0066cc;
+            color: #0066cc;
+        }
+
+        .btn-outline:hover {
+            background: #e6f0ff;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .project-card {
+            background: white;
+            border: 2px solid #edf0f5;
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: block;
+        }
+
+        .project-card:hover {
+            border-color: #0066cc;
+            box-shadow: 0 8px 24px rgba(0,102,204,0.1);
+            transform: translateY(-2px);
+        }
+
+        .project-icon {
+            width: 48px;
+            height: 48px;
+            background: #eef2ff;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0066cc;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .project-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #0a1e3c;
+            margin-bottom: 8px;
+        }
+
+        .project-description {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .project-stats {
+            display: flex;
+            gap: 16px;
+            padding-top: 16px;
+            border-top: 2px solid #edf0f5;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6c757d;
+            font-size: 13px;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: #0a1e3c;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: #6c757d;
+            background: #f8f9fa;
+            border-radius: 16px;
+            grid-column: 1 / -1;
+        }
+
+        .empty-state div:first-child {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 8px;
+            color: #0a1e3c;
+        }
+
+        /* Стили для модального окна */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            overflow: hidden;
+        }
+
+        .modal-confirm {
+            border-top: 4px solid #dc3545;
+        }
+
+        .modal-create {
+            border-top: 4px solid #0066cc;
+        }
+
+        .modal-header {
+            padding: 24px 24px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .modal-icon.confirm {
+            background: #fee;
+            color: #dc3545;
+        }
+
+        .modal-icon.create {
+            background: #e6f0ff;
+            color: #0066cc;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #0a1e3c;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .modal-content {
+            padding: 0 24px 24px;
+        }
+
+        .modal-text {
+            color: #2c3e50;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            text-align: center;
+        }
+
+        .modal-btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            background: #0052a3;
+        }
+
+        .modal-btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .modal-btn-danger:hover {
+            background: #c82333;
+        }
+
+        .modal-btn-secondary {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #d0d7de;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .modal-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 16px 0;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .modal-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .modal-timer {
+            text-align: center;
+            color: #6c757d;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+
+        .modal-progress {
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            margin-top: 16px;
+            overflow: hidden;
+        }
+
+        .modal-progress-bar {
+            height: 100%;
+            width: 100%;
+            background: #0066cc;
+            animation: progress 3s linear;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #0b1f3a;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #edf0f5;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        @media (max-width: 1200px) {
+            .nav-links {
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .nav-links {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+            .top-nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .nav-links {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+            .nav-item.active:after {
+                bottom: -5px;
+            }
+            .user-rating {
+                margin-left: 0;
+                width: 100%;
+                justify-content: space-between;
+            }
+            .projects-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            .projects-header .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Модальное окно подтверждения выхода -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal modal-confirm">
+            <div class="modal-header">
+                <div class="modal-icon confirm">
+                    ⚠️
+                </div>
+                <div>
+                    <div class="modal-title">Выход из профиля</div>
+                    <div class="modal-subtitle">Подтверждение действия</div>
+                </div>
+            </div>
+            <div class="modal-content">
+                <div class="modal-text">
+                    Вы действительно хотите выйти из системы? Все несохраненные данные будут потеряны.
+                </div>
+                
+                <!-- Дополнительная опция -->
+                <div class="modal-checkbox">
+                    <input type="checkbox" id="saveSession">
+                    <label for="saveSession">Запомнить меня на этом устройстве</label>
+                </div>
+
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-secondary" onclick="closeLogoutModal()">
+                        Отмена
+                    </button>
+                    <button class="modal-btn modal-btn-danger" onclick="confirmLogout()">
+                        Выйти
+                    </button>
+                </div>
+
+                <!-- Таймер автоматического закрытия -->
+                <div class="modal-timer">
+                    Окно закроется через <span id="timer">5</span> сек
+                </div>
+                <div class="modal-progress">
+                    <div class="modal-progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно создания проекта (обновленное) -->
+    <div class="modal-overlay" id="createProjectModal">
+        <div class="modal modal-create">
+            <div class="modal-header">
+                <div class="modal-icon create">
+                    ➕
+                </div>
+                <div>
+                    <div class="modal-title">Создать проект</div>
+                    <div class="modal-subtitle">Новый проект для оценки звонков</div>
+                </div>
+            </div>
+            
+            <div class="modal-content">
+                <form id="createProjectForm">
+                    <div class="form-group">
+                        <label>📁 Название проекта</label>
+                        <input type="text" name="name" placeholder="Например: Re: Развитие" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📝 Описание</label>
+                        <textarea name="description" rows="3" placeholder="Опишите проект..."></textarea>
+                    </div>
+                    
+                    <div class="modal-buttons">
+                        <button type="button" class="modal-btn modal-btn-secondary" onclick="closeCreateProjectModal()">Отмена</button>
+                        <button type="submit" class="modal-btn modal-btn-primary">Создать</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="top-nav">
+        <div class="project-badge">Оценка звонков • Контроль качества</div>
+        <div class="nav-links">
+            <a href="/" class="nav-item {% if request.url.path == '/' %}active{% endif %}">Дашборд</a>
+            <a href="/operators" class="nav-item {% if request.url.path == '/operators' %}active{% endif %}">Операторы</a>
+            <a href="/projects" class="nav-item {% if request.url.path == '/projects' %}active{% endif %}">Проекты</a>
+            <a href="/evaluations" class="nav-item {% if request.url.path == '/evaluations' %}active{% endif %}">Оцененные звонки</a>
+            <a href="/reports" class="nav-item {% if request.url.path == '/reports' %}active{% endif %}">Отчеты</a>
+            <a href="/tickets" class="nav-item {% if request.url.path == '/tickets' %}active{% endif %}">
+                Тикеты на проработку
+                <span class="tickets-badge">{{ tickets_count|default(0) }}</span>
+            </a>
+            <a href="/auth/profile" class="nav-item {% if request.url.path == '/auth/profile' %}active{% endif %}">Профиль</a>
+            {% if user and user.role == 'admin' %}
+            <a href="/admin" class="nav-item {% if request.url.path == '/admin' %}active{% endif %}">Админ</a>
+            {% endif %}
+        </div>
+        <div class="user-rating">
+            <div class="user-info">
+                <div class="user-avatar">
+                    {% if user and user.avatar_letters %}
+                        {{ user.avatar_letters }}
+                    {% elif user and user.full_name %}
+                        {{ user.full_name[:2]|upper }}
+                    {% else %}
+                        АД
+                    {% endif %}
+                </div>
+                <span style="font-size: 14px; font-weight: 500;">
+                    {% if user and user.full_name %}
+                        {{ user.full_name.split()[0] }}
+                    {% else %}
+                        Админ
+                    {% endif %}
+                </span>
+            </div>
+            <!-- Кнопка выхода теперь вызывает модальное окно -->
+            <button class="logout-btn" type="button" onclick="showLogoutModal()">
+                🚪 Выйти
+            </button>
+        </div>
+    </div>
+
+    <!-- Проекты -->
+    <div class="projects-strip">
+        {% for project in projects %}
+            <a href="/project/{{ project.id }}" class="project-tag" style="background: #f0f3fa;">
+                📁 {{ project.name }}
+            </a>
+        {% else %}
+            <span class="project-tag" style="background: #f0f3fa;">📁 Нет проектов</span>
+        {% endfor %}
+        
+        {% if user and user.role == 'admin' %}
+        <span class="project-tag add" onclick="openCreateProjectModal()">➕ Добавить проект</span>
+        {% endif %}
+        
+        <span class="project-tag all" onclick="window.location.href='/projects'">
+            📋 Все проекты ({{ projects|length }})
+        </span>
+    </div>
+
+    <div class="projects-container">
+        <div class="projects-header">
+            <h1>
+                <span>📁</span>
+                Проекты
+            </h1>
+            {% if user and user.role == 'admin' %}
+            <button class="btn btn-primary" onclick="openCreateProjectModal()">
+                ➕ Создать проект
+            </button>
+            {% endif %}
+        </div>
+
+        {% if projects %}
+        <div class="projects-grid">
+            {% for project in projects %}
+            <a href="/project/{{ project.id }}" class="project-card">
+                <div class="project-icon">
+                    📊
+                </div>
+                <div class="project-name">{{ project.name }}</div>
+                <div class="project-description">
+                    {{ project.description or 'Нет описания' }}
+                </div>
+                <div class="project-stats">
+                    <div class="stat">
+                        <span>📏</span>
+                        <span class="stat-value">{{ project.metrics_count }}</span>
+                        метрик
+                    </div>
+                    <div class="stat">
+                        <span>👥</span>
+                        <span class="stat-value">{{ project.operators_count }}</span>
+                        операторов
+                    </div>
+                    <div class="stat">
+                        <span>📊</span>
+                        <span class="stat-value">{{ project.avg_quality|round|int }}%</span>
+                        качество
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div>📁</div>
+            <h3>Нет проектов</h3>
+            <p style="margin-bottom: 20px;">Создайте первый проект</p>
+            {% if user and user.role == 'admin' %}
+            <button class="btn btn-primary" onclick="openCreateProjectModal()">
+                ➕ Создать проект
+            </button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Таймер для модального окна выхода
+        let timerInterval;
+
+        // Функции для модального окна выхода
+        function showLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.add('active');
+            
+            // Запускаем таймер на 5 секунд
+            let timeLeft = 5;
+            const timerElement = document.getElementById('timer');
+            
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    confirmLogout();
+                }
+            }, 1000);
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.remove('active');
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function confirmLogout() {
+            closeLogoutModal();
+            window.location.href = '/auth/logout';
+        }
+
+        // Функции для модального окна создания проекта
+        function openCreateProjectModal() {
+            document.getElementById('createProjectModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCreateProjectModal() {
+            document.getElementById('createProjectModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+            document.getElementById('createProjectForm').reset();
+        }
+
+        // Закрытие по клику на overlay
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                    if (this.id === 'logoutModal' && timerInterval) {
+                        clearInterval(timerInterval);
+                    }
+                    if (this.id === 'createProjectModal') {
+                        document.getElementById('createProjectForm').reset();
+                    }
+                }
+            });
+        });
+
+        // Закрытие по ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                    if (modal.id === 'logoutModal' && timerInterval) {
+                        clearInterval(timerInterval);
+                    }
+                    if (modal.id === 'createProjectModal') {
+                        document.getElementById('createProjectForm').reset();
+                    }
+                });
+            }
+        });
+
+        // Обработка чекбокса "Запомнить меня"
+        document.getElementById('saveSession')?.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                console.log('Сессия будет сохранена');
+                // Здесь можно добавить логику сохранения сессии
+            }
+        });
+
+        // Отправка формы создания проекта
+        document.getElementById('createProjectForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = {
+                name: formData.get('name'),
+                description: formData.get('description')
+            };
+
+            try {
+                const response = await fetch('/api/project/create', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    closeCreateProjectModal();
+                    location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('❌ ' + (error.detail || 'Ошибка создания проекта'));
+                }
+            } catch (error) {
+                alert('❌ Ошибка сети');
+            }
+        });
+    </script>
+</body>
+</html>

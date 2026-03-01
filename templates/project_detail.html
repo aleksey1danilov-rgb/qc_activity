@@ -1,0 +1,1318 @@
+<!-- templates/project_detail.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project.name }} | Детали проекта</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            padding: 24px 32px;
+        }
+
+        .top-nav {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .project-badge {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            color: #5a5e6a;
+            font-size: 14px;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            text-decoration: none;
+            color: #5a5e6a;
+        }
+
+        .nav-item:hover {
+            color: #0066cc;
+        }
+
+        .nav-item.active {
+            color: #0066cc;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-item.active:after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0066cc;
+        }
+
+        .tickets-badge {
+            background: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .user-rating {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logout-btn:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .projects-strip {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .project-tag {
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: default;
+            text-decoration: none;
+        }
+
+        .project-tag.add {
+            background: #0066cc;
+            color: white;
+            cursor: pointer;
+        }
+
+        .project-tag.all {
+            background: #ffffff;
+            color: #2c3e50;
+            border: 1px solid #d0d7de;
+            cursor: pointer;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .project-section {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+
+        .sidebar-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #edf0f5;
+        }
+
+        .project-title h1 {
+            font-size: 28px;
+            color: #0a1e3c;
+            margin-bottom: 8px;
+        }
+
+        .project-description {
+            color: #6c757d;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0052a3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,102,204,0.2);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #0066cc;
+            color: #0066cc;
+        }
+
+        .btn-outline:hover {
+            background: #e6f0ff;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: #f8faff;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .stat-card.total {
+            background: #e6f0ff;
+            border: 2px solid #0066cc;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 8px;
+        }
+
+        .stat-sub {
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .block-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .block-stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            border: 2px solid #edf0f5;
+            transition: all 0.2s;
+        }
+
+        .block-stat-card:hover {
+            border-color: #0066cc;
+            box-shadow: 0 8px 24px rgba(0,102,204,0.1);
+        }
+
+        .block-stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #edf0f5;
+        }
+
+        .block-stat-name {
+            font-weight: 600;
+            color: #0a1e3c;
+            font-size: 20px;
+        }
+
+        .block-stat-percent {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+
+        .block-stat-details {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .block-stat-item {
+            text-align: center;
+        }
+
+        .block-stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0a1e3c;
+            margin-bottom: 4px;
+        }
+
+        .block-stat-label {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .block-stat-success .block-stat-value {
+            color: #0b6b0b;
+        }
+
+        .block-stat-reset .block-stat-value {
+            color: #dc3545;
+        }
+
+        .block-chart-container {
+            height: 200px;
+            margin-top: 16px;
+            padding: 12px;
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #edf0f5;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 32px 0 20px 0;
+        }
+
+        .section-header:first-of-type {
+            margin-top: 0;
+        }
+
+        .section-header h2 {
+            font-size: 20px;
+            color: #0a1e3c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .metrics-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+        }
+
+        .metric-item:hover {
+            background: #e6f0ff;
+        }
+
+        .metric-info h3 {
+            font-size: 16px;
+            color: #0b1f3a;
+            margin-bottom: 6px;
+        }
+
+        .metric-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .tag-max {
+            background: #e8eaf6;
+            color: #1a237e;
+        }
+
+        .tag-critical {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .tag-reset {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .tag-penalty {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .block-badge {
+            background: #e2e8f0;
+            color: #2d3748;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .operators-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .operators-table th {
+            text-align: left;
+            padding: 12px 0;
+            color: #6c757d;
+            font-weight: 500;
+            font-size: 13px;
+            border-bottom: 2px solid #edf0f5;
+        }
+
+        .operators-table td {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f3f8;
+            vertical-align: middle;
+        }
+
+        .operator-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .operator-avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .operator-name {
+            font-weight: 600;
+            color: #0b1f3a;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .operator-login {
+            font-size: 11px;
+            color: #8a94a6;
+        }
+
+        .quality-badge {
+            background: #e6f7e6;
+            color: #0b6b0b;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #6c757d;
+            background: #f8f9fa;
+            border-radius: 16px;
+        }
+
+        .empty-state div:first-child {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 8px;
+            color: #0a1e3c;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .back-link:hover {
+            color: #0066cc;
+        }
+
+        .hidden-data {
+            display: none;
+        }
+
+        .no-data-message {
+            text-align: center;
+            color: #6c757d;
+            padding: 20px;
+            font-size: 13px;
+        }
+
+        /* Стили для модального окна */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            overflow: hidden;
+        }
+
+        .modal-confirm {
+            border-top: 4px solid #dc3545;
+        }
+
+        .modal-header {
+            padding: 24px 24px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .modal-icon.confirm {
+            background: #fee;
+            color: #dc3545;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #0a1e3c;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .modal-content {
+            padding: 0 24px 24px;
+        }
+
+        .modal-text {
+            color: #2c3e50;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            text-align: center;
+        }
+
+        .modal-btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            background: #0052a3;
+        }
+
+        .modal-btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .modal-btn-danger:hover {
+            background: #c82333;
+        }
+
+        .modal-btn-secondary {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #d0d7de;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .modal-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 16px 0;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .modal-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .modal-timer {
+            text-align: center;
+            color: #6c757d;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+
+        .modal-progress {
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            margin-top: 16px;
+            overflow: hidden;
+        }
+
+        .modal-progress-bar {
+            height: 100%;
+            width: 100%;
+            background: #0066cc;
+            animation: progress 3s linear;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            .block-stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+            .metric-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .block-stat-details {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            .project-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+            .project-actions .btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Модальное окно подтверждения выхода -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal modal-confirm">
+            <div class="modal-header">
+                <div class="modal-icon confirm">
+                    ⚠️
+                </div>
+                <div>
+                    <div class="modal-title">Выход из профиля</div>
+                    <div class="modal-subtitle">Подтверждение действия</div>
+                </div>
+            </div>
+            <div class="modal-content">
+                <div class="modal-text">
+                    Вы действительно хотите выйти из системы? Все несохраненные данные будут потеряны.
+                </div>
+                
+                <div class="modal-checkbox">
+                    <input type="checkbox" id="saveSession">
+                    <label for="saveSession">Запомнить меня на этом устройстве</label>
+                </div>
+
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-secondary" onclick="closeLogoutModal()">
+                        Отмена
+                    </button>
+                    <button class="modal-btn modal-btn-danger" onclick="confirmLogout()">
+                        Выйти
+                    </button>
+                </div>
+
+                <div class="modal-timer">
+                    Окно закроется через <span id="timer">5</span> сек
+                </div>
+                <div class="modal-progress">
+                    <div class="modal-progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="top-nav">
+        <div class="project-badge">Оценка звонков • Проекты</div>
+        <div class="nav-links">
+            <a href="/" class="nav-item {% if request.url.path == '/' %}active{% endif %}">Дашборд</a>
+            <a href="/operators" class="nav-item {% if request.url.path == '/operators' %}active{% endif %}">Операторы</a>
+            <a href="/projects" class="nav-item {% if request.url.path == '/projects' %}active{% endif %}">Проекты</a>
+            <a href="/reports" class="nav-item {% if request.url.path == '/reports' %}active{% endif %}">Отчеты</a>
+            <a href="/tickets" class="nav-item {% if request.url.path == '/tickets' %}active{% endif %}">
+                Тикеты на проработку
+                <span class="tickets-badge">{{ tickets_count|default(0) }}</span>
+            </a>
+            <a href="/auth/profile" class="nav-item {% if request.url.path == '/auth/profile' %}active{% endif %}">Профиль</a>
+            {% if user and user.role == 'admin' %}
+            <a href="/admin" class="nav-item {% if request.url.path == '/admin' %}active{% endif %}">Админ</a>
+            {% endif %}
+        </div>
+        <div class="user-rating">
+            <div class="user-info">
+                <div class="user-avatar">
+                    {% if user and user.avatar_letters %}
+                        {{ user.avatar_letters }}
+                    {% elif user and user.full_name %}
+                        {{ user.full_name[:2]|upper }}
+                    {% else %}
+                        АД
+                    {% endif %}
+                </div>
+                <span style="font-size: 14px; font-weight: 500;">
+                    {% if user and user.full_name %}
+                        {{ user.full_name.split()[0] }}
+                    {% else %}
+                        Админ
+                    {% endif %}
+                </span>
+            </div>
+            <button class="logout-btn" type="button" onclick="showLogoutModal()">
+                🚪 Выйти
+            </button>
+        </div>
+    </div>
+
+    <!-- Проекты -->
+    <div class="projects-strip">
+        {% for project in projects %}
+            <a href="/project/{{ project.id }}" class="project-tag" style="background: #f0f3fa;">
+                📁 {{ project.name }}
+            </a>
+        {% else %}
+            <span class="project-tag" style="background: #f0f3fa;">📁 Нет проектов</span>
+        {% endfor %}
+        
+        {% if user and user.role in ['admin', 'controller'] %}
+        <span class="project-tag add" onclick="window.location.href='/projects'">➕ Добавить проект</span>
+        {% endif %}
+        
+        <span class="project-tag all" onclick="window.location.href='/projects'">
+            📋 Все проекты ({{ projects|length }})
+        </span>
+    </div>
+
+    <a href="/projects" class="back-link">
+        ← Назад к проектам
+    </a>
+
+    <div class="dashboard">
+        <div class="project-section">
+            <div class="project-header">
+                <div class="project-title">
+                    <h1>{{ project.name }}</h1>
+                    <p class="project-description">{{ project.description or 'Нет описания проекта' }}</p>
+                </div>
+                <div class="project-actions">
+                    {% if user and user.role in ['admin', 'controller'] %}
+                    <a href="/project/{{ project.id }}/metrics">
+                        <button class="btn btn-primary">
+                            ⚙️ Управление метриками
+                        </button>
+                    </a>
+                    <a href="/project/{{ project.id }}/topics">
+                        <button class="btn btn-outline">
+                            🎯 Темы звонков
+                        </button>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Блоки со статистикой -->
+            {% if block_stats and block_stats|length > 0 %}
+            <div class="block-stats-grid">
+                {% for block_stat in block_stats %}
+                <div class="block-stat-card">
+                    <div class="block-stat-header">
+                        <span class="block-stat-name">{{ block_stat.name }}</span>
+                        <span class="block-stat-percent">{{ block_stat.percent|round|int }}%</span>
+                    </div>
+                    
+                    <div class="block-stat-details">
+                        <div class="block-stat-item block-stat-success">
+                            <div class="block-stat-value">{{ block_stat.successful }}</div>
+                            <div class="block-stat-label">Выполнено</div>
+                        </div>
+                        <div class="block-stat-item block-stat-reset">
+                            <div class="block-stat-value">{{ block_stat.resets }}</div>
+                            <div class="block-stat-label">Обнулено</div>
+                        </div>
+                        <div class="block-stat-item">
+                            <div class="block-stat-value">{{ block_stat.total }}</div>
+                            <div class="block-stat-label">Всего оценок</div>
+                        </div>
+                    </div>
+
+                    <!-- Контейнер для графика блока -->
+                    <div class="block-chart-container" 
+                         id="block-chart-{{ block_stat.id }}"
+                         data-block-id="{{ block_stat.id }}"
+                         data-block-name="{{ block_stat.name }}">
+                        <canvas id="chart-{{ block_stat.id }}"></canvas>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Общая статистика -->
+            <div class="stats-grid">
+                <div class="stat-card total">
+                    <div class="stat-label">Общая оценка</div>
+                    <div class="stat-value">{{ stats.avg_quality|default(0)|round|int }}%</div>
+                    <div class="stat-sub">среднее по {{ block_stats|length }} блокам</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Всего оценок</div>
+                    <div class="stat-value">{{ total_evaluations|default(0) }}</div>
+                    <div class="stat-sub">за 30 дней</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Операторов</div>
+                    <div class="stat-value">{{ operators|length }}</div>
+                    <div class="stat-sub">активных</div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Если нет статистики по блокам -->
+            <div class="stats-grid">
+                <div class="stat-card total">
+                    <div class="stat-label">Общая оценка</div>
+                    <div class="stat-value">{{ stats.avg_quality|default(0)|round|int }}%</div>
+                    <div class="stat-sub">за 30 дней</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Оценок</div>
+                    <div class="stat-value">{{ stats.evaluations_count|default(0) }}</div>
+                    <div class="stat-sub">за 30 дней</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Операторов</div>
+                    <div class="stat-value">{{ operators|length }}</div>
+                    <div class="stat-sub">активных</div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Метрики -->
+            <div class="section-header">
+                <h2>
+                    <span>📏</span> 
+                    Метрики оценки ({{ metrics|length }})
+                </h2>
+            </div>
+
+            {% if metrics and metrics|length > 0 %}
+            <div class="metrics-list">
+                {% for metric in metrics %}
+                <div class="metric-item">
+                    <div class="metric-info">
+                        <h3>{{ metric.name }}</h3>
+                        <div class="metric-tags">
+                            <span class="tag tag-max">max {{ metric.max_score|default(5) }}</span>
+                            {% if metric.is_critical %}
+                            <span class="tag tag-critical">критичная</span>
+                            {% endif %}
+                            {% if metric.resets_block %}
+                            <span class="tag tag-reset">обнуляет блок</span>
+                            {% endif %}
+                            {% if metric.penalty_type %}
+                            <span class="tag tag-penalty">
+                                штраф {{ metric.penalty_value }}% 
+                                {% if metric.penalty_type == 'total' %}от общ{% else %}от блока{% endif %}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        {% if metric.block %}
+                        <span class="block-badge">{{ metric.block.name }}</span>
+                        {% endif %}
+                        {% if metric.description %}
+                        <span style="color: #6c757d; font-size: 12px;">{{ metric.description|truncate(40) }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div>📏</div>
+                <h3>Нет метрик</h3>
+                <p style="margin-bottom: 20px;">Добавьте метрики для оценки звонков</p>
+                <a href="/project/{{ project.id }}/metrics">
+                    <button class="btn btn-primary">➕ Добавить метрики</button>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Сайдбар с операторами -->
+        <div class="sidebar-section">
+            <div class="section-header">
+                <h2>
+                    <span>👥</span> 
+                    Операторы проекта
+                </h2>
+                <span style="color: #6c757d;">{{ operators|length }} чел</span>
+            </div>
+
+            {% if operators and operators|length > 0 %}
+            <table class="operators-table">
+                <thead>
+                    <tr>
+                        <th>Оператор</th>
+                        <th>Качество</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for operator in operators[:5] %}
+                    <tr>
+                        <td>
+                            <div class="operator-cell">
+                                <div class="operator-avatar">
+                                    {{ operator.avatar_letters or operator.full_name[:2] }}
+                                </div>
+                                <div>
+                                    <div class="operator-name">{{ operator.full_name }}</div>
+                                    <div class="operator-login">{{ operator.login }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if operator.avg_quality %}
+                            <span class="quality-badge">{{ operator.avg_quality|round|int }}%</span>
+                            {% else %}
+                            <span style="color: #8a94a6;">нет оценок</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="/evaluate/{{ operator.id }}">
+                                <button class="btn btn-outline" style="padding: 4px 12px; font-size: 12px;">
+                                    Оценить
+                                </button>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if operators|length > 5 %}
+            <div style="margin-top: 16px; text-align: center; color: #0066cc;">
+                + еще {{ operators|length - 5 }} операторов
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="empty-state" style="padding: 32px;">
+                <div>👤</div>
+                <h3>Нет операторов</h3>
+                <p>Добавьте операторов в проект</p>
+            </div>
+            {% endif %}
+
+            <!-- Информация о проекте -->
+            <div style="margin-top: 32px;">
+                <div class="section-header">
+                    <h2>
+                        <span>ℹ️</span> 
+                        Информация
+                    </h2>
+                </div>
+                <div style="background: #f8f9fa; border-radius: 12px; padding: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span style="color: #6c757d;">Дата создания</span>
+                        <span style="font-weight: 600;">{{ project.created_at.strftime('%d.%m.%Y') if project.created_at else '—' }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span style="color: #6c757d;">Блоков</span>
+                        <span style="font-weight: 600;">{{ blocks|length }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                        <span style="color: #6c757d;">Метрик</span>
+                        <span style="font-weight: 600;">{{ metrics|length }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #6c757d;">Тем звонков</span>
+                        <span style="font-weight: 600;">{{ topics_count|default(0) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Таймер для модального окна выхода
+        let timerInterval;
+
+        function showLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.add('active');
+            
+            let timeLeft = 5;
+            const timerElement = document.getElementById('timer');
+            
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    confirmLogout();
+                }
+            }, 1000);
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.remove('active');
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function confirmLogout() {
+            closeLogoutModal();
+            window.location.href = '/auth/logout';
+        }
+
+        // Закрытие по клику на overlay
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    if (this.id === 'logoutModal' && timerInterval) {
+                        clearInterval(timerInterval);
+                    }
+                }
+            });
+        });
+
+        // Закрытие по ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                    if (modal.id === 'logoutModal' && timerInterval) {
+                        clearInterval(timerInterval);
+                    }
+                });
+            }
+        });
+
+        document.getElementById('saveSession')?.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                console.log('Сессия будет сохранена');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Устанавливаем даты для графиков (последние 30 дней)
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(endDate.getDate() - 30);
+            
+            const formatDate = (date) => {
+                return date.toISOString().split('T')[0];
+            };
+            
+            const startDateStr = formatDate(startDate);
+            const endDateStr = formatDate(endDate);
+            
+            // Загружаем данные для каждого блока
+            const blockCharts = document.querySelectorAll('[id^="block-chart-"]');
+            
+            blockCharts.forEach(container => {
+                const blockId = container.dataset.blockId;
+                const blockName = container.dataset.blockName;
+                const canvas = document.getElementById(`chart-${blockId}`);
+                
+                if (!canvas) return;
+                
+                // Загружаем данные
+                fetch(`/api/block/${blockId}/dynamics?start_date=${startDateStr}&end_date=${endDateStr}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.length > 0) {
+                            createBlockChart(canvas, data, blockName);
+                        } else {
+                            canvas.parentNode.innerHTML = '<div class="no-data-message">Нет данных за период</div>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`Ошибка загрузки данных для блока ${blockName}:`, error);
+                        canvas.parentNode.innerHTML = '<div class="no-data-message">Ошибка загрузки данных</div>';
+                    });
+            });
+            
+            function createBlockChart(canvas, data, blockName) {
+                const ctx = canvas.getContext('2d');
+                
+                // Фильтруем только дни с оценками
+                const validData = data.filter(d => d.count > 0);
+                
+                if (validData.length === 0) {
+                    canvas.parentNode.innerHTML = '<div class="no-data-message">Нет данных за период</div>';
+                    return;
+                }
+                
+                const labels = validData.map(d => d.label);
+                const percentages = validData.map(d => d.percent);
+                const counts = validData.map(d => d.count);
+                
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: `${blockName} %`,
+                            data: percentages,
+                            borderColor: '#0066cc',
+                            backgroundColor: 'rgba(0,102,204,0.1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: '#0066cc',
+                            pointBorderColor: 'white',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            tension: 0.3,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'white',
+                                titleColor: '#0a1e3c',
+                                bodyColor: '#6c757d',
+                                borderColor: '#edf0f5',
+                                borderWidth: 1,
+                                padding: 12,
+                                callbacks: {
+                                    label: function(context) {
+                                        const index = context.dataIndex;
+                                        const count = counts[index];
+                                        const percent = percentages[index];
+                                        return [
+                                            `Качество: ${percent}%`,
+                                            `Оценок: ${count}`
+                                        ];
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                grid: {
+                                    color: '#edf0f5'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

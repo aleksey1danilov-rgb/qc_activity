@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Администрирование | Пользователи</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            padding: 24px 32px;
+        }
+
+        .top-nav {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .project-badge {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            color: #5a5e6a;
+            font-size: 14px;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            text-decoration: none;
+            color: #5a5e6a;
+        }
+
+        .nav-item:hover {
+            color: #0066cc;
+        }
+
+        .nav-item.active {
+            color: #0066cc;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-item.active:after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0066cc;
+        }
+
+        .user-rating {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+
+        .admin-container {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .admin-header h1 {
+            font-size: 24px;
+            color: #0a1e3c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0052a3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,102,204,0.2);
+        }
+
+        .btn-success {
+            background: #0b6b0b;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #094c09;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #d0d7de;
+            color: #2c3e50;
+        }
+
+        .btn-outline:hover {
+            background: #f8f9fa;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table th {
+            text-align: left;
+            padding: 16px 0;
+            color: #6c757d;
+            font-weight: 500;
+            font-size: 13px;
+            border-bottom: 2px solid #edf0f5;
+        }
+
+        .users-table td {
+            padding: 20px 0;
+            border-bottom: 1px solid #f0f3f8;
+            vertical-align: middle;
+        }
+
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar-sm {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+            font-size: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #0b1f3a;
+            margin-bottom: 4px;
+            font-size: 15px;
+        }
+
+        .user-login {
+            font-size: 12px;
+            color: #8a94a6;
+        }
+
+        .role-badge {
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .role-admin {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .role-manager {
+            background: #e8eaf6;
+            color: #1a237e;
+            border: 1px solid #c5cae9;
+        }
+
+        .role-controller {
+            background: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #b8e1ff;
+        }
+
+        .status-badge {
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .status-active {
+            background: #e6f7e6;
+            color: #0b6b0b;
+            border: 1px solid #b7eb8f;
+        }
+
+        .status-blocked {
+            background: #fff5f5;
+            color: #dc3545;
+            border: 1px solid #ffccc7;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid #d0d7de;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-icon:hover {
+            background: #f8f9fa;
+            border-color: #0066cc;
+        }
+
+        .btn-icon.delete:hover {
+            background: #fff5f5;
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 520px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            margin-bottom: 28px;
+        }
+
+        .modal-header h2 {
+            color: #0a1e3c;
+            margin-bottom: 8px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-header p {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #0b1f3a;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #edf0f5;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.2s;
+            background: #fafbfc;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #0066cc;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0,102,204,0.1);
+        }
+
+        .form-group select[multiple] {
+            height: 110px;
+            padding: 8px;
+        }
+
+        .form-group select[multiple] option {
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin: 2px 0;
+        }
+
+        .form-group select[multiple] option:checked {
+            background: #0066cc linear-gradient(0deg, #0066cc 0%, #0066cc 100%);
+            color: white;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: #6c757d;
+        }
+
+        .empty-state div:first-child {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 8px;
+            color: #0a1e3c;
+        }
+
+        .project-tag {
+            display: inline-block;
+            background: #e8eaf6;
+            color: #1a237e;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            margin: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        <div class="project-badge">Оценка звонков • Администрирование</div>
+        <div class="nav-links">
+            <a href="/" class="nav-item">Дашборд</a>
+            <a href="/operators" class="nav-item">Операторы</a>
+            <a href="/projects" class="nav-item">Проекты</a>
+            <a href="/reports" class="nav-item">Отчеты</a>
+            <a href="/auth/profile" class="nav-item">Профиль</a>
+            <a href="/auth/admin/users" class="nav-item active">Админ</a>
+        </div>
+        <div class="user-rating">
+            <div class="user-info">
+                <div class="user-avatar">AD</div>
+                <span style="font-size: 14px; font-weight: 500;">Администратор</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <h1>
+                <span>👑</span> 
+                Управление пользователями
+            </h1>
+            <button class="btn btn-primary" id="createUserBtn">
+                <span style="margin-right: 4px;">➕</span> 
+                Создать пользователя
+            </button>
+        </div>
+
+        {% if users|length == 0 %}
+        <div class="empty-state">
+            <div>👥</div>
+            <h3>Нет пользователей</h3>
+            <p style="margin-bottom: 20px;">Создайте первого пользователя в системе</p>
+            <button class="btn btn-primary" id="emptyCreateBtn">
+                ➕ Создать пользователя
+            </button>
+        </div>
+        {% else %}
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>Пользователь</th>
+                    <th>Роль</th>
+                    <th>Статус</th>
+                    <th>Дата регистрации</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr data-user-id="{{ user.id }}" data-user-name="{{ user.full_name }}" data-user-active="{{ user.is_active }}">
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar-sm">
+                                {{ user.avatar_letters or user.full_name[:2]|upper }}
+                            </div>
+                            <div>
+                                <div class="user-name">{{ user.full_name }}</div>
+                                <div class="user-login">{{ user.login }}</div>
+                                {% if user.email %}
+                                <div style="font-size: 11px; color: #8a94a6; margin-top: 2px;">
+                                    📧 {{ user.email }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="role-badge 
+                            {% if user.role == 'admin' %}role-admin
+                            {% elif user.role == 'manager' %}role-manager
+                            {% else %}role-controller{% endif %}">
+                            {% if user.role == 'admin' %}
+                                👑 Администратор
+                            {% elif user.role == 'manager' %}
+                                📋 Руководитель
+                            {% else %}
+                                🎤 Контролер
+                            {% endif %}
+                        </span>
+                        {% if user.role == 'manager' and user.managed_projects %}
+                        <div style="margin-top: 6px; max-width: 200px;">
+                            {% for project in user.managed_projects[:2] %}
+                            <span class="project-tag">{{ project.name }}</span>
+                            {% endfor %}
+                            {% if user.managed_projects|length > 2 %}
+                            <span class="project-tag">+{{ user.managed_projects|length - 2 }}</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="status-badge {% if user.is_active %}status-active{% else %}status-blocked{% endif %}">
+                            {% if user.is_active %}✅ Активен{% else %}🚫 Заблокирован{% endif %}
+                        </span>
+                    </td>
+                    <td style="color: #6c757d; font-size: 14px;">
+                        {% if user.created_at %}
+                            {{ user.created_at.strftime('%d.%m.%Y') }}
+                            <div style="font-size: 11px; color: #8a94a6;">
+                                {{ user.created_at.strftime('%H:%M') }}
+                            </div>
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.id != 1 %}
+                            <div class="action-buttons">
+                                <button class="btn-icon toggle-block-btn">
+                                    {% if user.is_active %}🔒 Заблокировать{% else %}🔓 Разблокировать{% endif %}
+                                </button>
+                                <button class="btn-icon delete delete-user-btn">
+                                    🗑️ Удалить
+                                </button>
+                            </div>
+                        {% else %}
+                            <span style="color: #6c757d; font-size: 13px; background: #f8f9fa; padding: 8px 16px; border-radius: 30px;">
+                                👑 Главный администратор
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+
+    <!-- Модальное окно создания пользователя -->
+    <div id="createUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>
+                    <span>➕</span> 
+                    Создать пользователя
+                </h2>
+                <p>Новый пользователь получит временный пароль <strong>123456</strong></p>
+            </div>
+            
+            <form id="createUserForm">
+                <div class="form-group">
+                    <label>👤 Полное имя</label>
+                    <input type="text" name="full_name" placeholder="Иванов Иван Иванович" required autocomplete="off">
+                </div>
+                
+                <div class="form-group">
+                    <label>🔑 Логин</label>
+                    <input type="text" name="login" placeholder="ivan.control" required autocomplete="off">
+                </div>
+                
+                <div class="form-group">
+                    <label>📧 Email (необязательно)</label>
+                    <input type="email" name="email" placeholder="ivan@example.com" autocomplete="off">
+                </div>
+                
+                <div class="form-group">
+                    <label>🎯 Роль</label>
+                    <select name="role" id="createRoleSelect" required>
+                        <option value="controller">🎤 Контролер — оценка звонков</option>
+                        <option value="manager">📋 Руководитель — отчеты по проектам</option>
+                        <option value="admin">👑 Администратор — полный доступ</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="projectSelectGroup" style="display: none;">
+                    <label>📁 Проекты (для руководителя)</label>
+                    <select name="projects" multiple>
+                        {% for project in projects %}
+                        <option value="{{ project.id }}">{{ project.name }}</option>
+                        {% else %}
+                        <option disabled>Нет доступных проектов</option>
+                        {% endfor %}
+                    </select>
+                    <p style="font-size: 12px; color: #6c757d; margin-top: 6px;">
+                        Удерживайте Ctrl/Cmd для выбора нескольких проектов
+                    </p>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" id="closeCreateModalBtn">Отмена</button>
+                    <button type="submit" class="btn btn-success">Создать пользователя</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения блокировки -->
+    <div id="confirmBlockModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2 id="blockModalTitle">🔒 Подтверждение</h2>
+            </div>
+            <p id="blockModalMessage" style="margin-bottom: 24px; font-size: 15px;"></p>
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="closeBlockModalBtn">Отмена</button>
+                <button class="btn" id="blockConfirmBtn" style="background: #dc3545; color: white;">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения удаления -->
+    <div id="confirmDeleteModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2 style="color: #dc3545;">⚠️ Подтверждение удаления</h2>
+            </div>
+            <p id="deleteModalMessage" style="margin-bottom: 24px; font-size: 15px;"></p>
+            <p style="color: #dc3545; font-size: 14px; margin-bottom: 24px; padding: 12px; background: #fff5f5; border-radius: 12px;">
+                Это действие нельзя отменить. Все данные пользователя будут удалены.
+            </p>
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="closeDeleteModalBtn">Отмена</button>
+                <button class="btn" id="deleteConfirmBtn" style="background: #dc3545; color: white;">Удалить</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // ============== МОДАЛЬНОЕ ОКНО СОЗДАНИЯ ==============
+            const createUserBtn = document.getElementById('createUserBtn');
+            const emptyCreateBtn = document.getElementById('emptyCreateBtn');
+            const createUserModal = document.getElementById('createUserModal');
+            const closeCreateModalBtn = document.getElementById('closeCreateModalBtn');
+            const createUserForm = document.getElementById('createUserForm');
+            const createRoleSelect = document.getElementById('createRoleSelect');
+            const projectSelectGroup = document.getElementById('projectSelectGroup');
+
+            function openCreateModal() {
+                createUserModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeCreateModal() {
+                createUserModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                createUserForm.reset();
+                projectSelectGroup.style.display = 'none';
+            }
+
+            if (createUserBtn) createUserBtn.addEventListener('click', openCreateModal);
+            if (emptyCreateBtn) emptyCreateBtn.addEventListener('click', openCreateModal);
+            if (closeCreateModalBtn) closeCreateModalBtn.addEventListener('click', closeCreateModal);
+
+            // Показывать выбор проектов только для руководителей
+            if (createRoleSelect) {
+                createRoleSelect.addEventListener('change', function() {
+                    projectSelectGroup.style.display = this.value === 'manager' ? 'block' : 'none';
+                    if (this.value !== 'manager') {
+                        const select = document.querySelector('select[name="projects"]');
+                        if (select) select.selectedIndex = -1;
+                    }
+                });
+            }
+
+            // ============== МОДАЛЬНОЕ ОКНО БЛОКИРОВКИ ==============
+            const confirmBlockModal = document.getElementById('confirmBlockModal');
+            const blockModalTitle = document.getElementById('blockModalTitle');
+            const blockModalMessage = document.getElementById('blockModalMessage');
+            const blockConfirmBtn = document.getElementById('blockConfirmBtn');
+            const closeBlockModalBtn = document.getElementById('closeBlockModalBtn');
+
+            function openBlockModal(userName, isActive) {
+                const action = isActive ? 'заблокировать' : 'разблокировать';
+                blockModalTitle.innerHTML = isActive ? '🔒 Блокировка' : '🔓 Разблокировка';
+                blockModalMessage.innerHTML = `Вы уверены, что хотите <strong>${action}</strong> пользователя <strong>${userName}</strong>?`;
+                
+                blockConfirmBtn.style.background = isActive ? '#dc3545' : '#0b6b0b';
+                blockConfirmBtn.innerHTML = isActive ? '🔒 Заблокировать' : '🔓 Разблокировать';
+                
+                confirmBlockModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeBlockModal() {
+                confirmBlockModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+
+            if (closeBlockModalBtn) closeBlockModalBtn.addEventListener('click', closeBlockModal);
+
+            // ============== МОДАЛЬНОЕ ОКНО УДАЛЕНИЯ ==============
+            const confirmDeleteModal = document.getElementById('confirmDeleteModal');
+            const deleteModalMessage = document.getElementById('deleteModalMessage');
+            const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
+            const closeDeleteModalBtn = document.getElementById('closeDeleteModalBtn');
+
+            function openDeleteModal(userName) {
+                deleteModalMessage.innerHTML = `Вы уверены, что хотите удалить пользователя <strong>${userName}</strong>?`;
+                confirmDeleteModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeDeleteModal() {
+                confirmDeleteModal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+
+            if (closeDeleteModalBtn) closeDeleteModalBtn.addEventListener('click', closeDeleteModal);
+
+            // ============== ОБРАБОТЧИКИ КНОПОК ==============
+            let currentUserId = null;
+
+            // Кнопки блокировки/разблокировки
+            document.querySelectorAll('.toggle-block-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const row = this.closest('tr');
+                    const userId = parseInt(row.dataset.userId);
+                    const userName = row.dataset.userName;
+                    const isActive = this.innerHTML.includes('Заблокировать');
+                    
+                    currentUserId = userId;
+                    openBlockModal(userName, isActive);
+                });
+            });
+
+            // Кнопки удаления
+            document.querySelectorAll('.delete-user-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const row = this.closest('tr');
+                    const userId = parseInt(row.dataset.userId);
+                    const userName = row.dataset.userName;
+                    
+                    currentUserId = userId;
+                    openDeleteModal(userName);
+                });
+            });
+
+            // ============== API ЗАПРОСЫ ==============
+            async function executeBlock() {
+                if (!currentUserId) return;
+                
+                try {
+                    const response = await fetch(`/auth/admin/users/${currentUserId}/toggle-block`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        closeBlockModal();
+                        location.reload();
+                    } else {
+                        const error = await response.json();
+                        alert('❌ ' + (error.detail || 'Ошибка при изменении статуса'));
+                    }
+                } catch (error) {
+                    alert('❌ Ошибка сети');
+                }
+            }
+
+            async function executeDelete() {
+                if (!currentUserId) return;
+                
+                try {
+                    const response = await fetch(`/auth/admin/users/${currentUserId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        closeDeleteModal();
+                        location.reload();
+                    } else {
+                        const error = await response.json();
+                        alert('❌ ' + (error.detail || 'Ошибка при удалении'));
+                    }
+                } catch (error) {
+                    alert('❌ Ошибка сети');
+                }
+            }
+
+            if (blockConfirmBtn) blockConfirmBtn.addEventListener('click', executeBlock);
+            if (deleteConfirmBtn) deleteConfirmBtn.addEventListener('click', executeDelete);
+
+            // ============== ОТПРАВКА ФОРМЫ СОЗДАНИЯ ==============
+            if (createUserForm) {
+                createUserForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(this);
+                    const projectsSelect = document.querySelector('select[name="projects"]');
+                    const selectedProjects = projectsSelect ? Array.from(projectsSelect.selectedOptions).map(opt => opt.value) : [];
+                    
+                    const data = {
+                        full_name: formData.get('full_name'),
+                        login: formData.get('login'),
+                        email: formData.get('email') || null,
+                        role: formData.get('role'),
+                        projects: selectedProjects.map(Number),
+                        is_active: true
+                    };
+
+                    try {
+                        const response = await fetch('/auth/admin/users/create', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                        });
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            alert(`✅ Пользователь ${data.full_name} создан!\nВременный пароль: 123456`);
+                            closeCreateModal();
+                            location.reload();
+                        } else {
+                            const error = await response.json();
+                            alert('❌ ' + (error.detail || 'Ошибка при создании пользователя'));
+                        }
+                    } catch (error) {
+                        alert('❌ Ошибка сети');
+                    }
+                });
+            }
+
+            // ============== ЗАКРЫТИЕ ПО КЛИКУ ВНЕ МОДАЛКИ ==============
+            window.addEventListener('click', function(event) {
+                if (event.target == createUserModal) closeCreateModal();
+                if (event.target == confirmBlockModal) closeBlockModal();
+                if (event.target == confirmDeleteModal) closeDeleteModal();
+            });
+
+            // ============== ЗАКРЫТИЕ ПО ESC ==============
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeCreateModal();
+                    closeBlockModal();
+                    closeDeleteModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

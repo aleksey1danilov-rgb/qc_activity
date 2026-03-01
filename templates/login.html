@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход | Оценка звонков</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .login-container {
+            max-width: 420px;
+            width: 100%;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+
+        .project-badge {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            display: inline-block;
+            margin-bottom: 24px;
+        }
+
+        .login-header {
+            margin-bottom: 32px;
+        }
+
+        .login-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #0a1e3c;
+            margin-bottom: 8px;
+        }
+
+        .login-header p {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .success-message {
+            background: #e6f7e6;
+            border: 1px solid #b7eb8f;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            color: #0b6b0b;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .error-message {
+            background: #fff5f5;
+            border: 1px solid #ffccc7;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+            color: #dc3545;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #0b1f3a;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #edf0f5;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.2s;
+            background: #fafbfc;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #0066cc;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0,102,204,0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 12px;
+        }
+
+        .btn-login:hover {
+            background: #0052a3;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #edf0f5;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .register-link a {
+            color: #0066cc;
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .demo-account {
+            margin-top: 24px;
+            background: #f8faff;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 13px;
+            color: #495057;
+        }
+
+        .demo-account strong {
+            color: #1e3a8a;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <span class="project-badge">📞 Оценка звонков</span>
+            
+            <div class="login-header">
+                <h1>Добро пожаловать!</h1>
+                <p>Войдите в систему контроля качества</p>
+            </div>
+
+            {% if registered %}
+            <div class="success-message">
+                ✅ Регистрация успешна! Теперь войдите с вашим логином и паролем.
+            </div>
+            {% endif %}
+
+            {% if error %}
+            <div class="error-message">
+                ❌ {{ error }}
+            </div>
+            {% endif %}
+
+            {% if password_changed %}
+            <div class="success-message">
+                🔐 Пароль успешно изменен! Войдите с новым паролем.
+            </div>
+            {% endif %}
+
+            <form method="post" action="/auth/login">
+                <div class="form-group">
+                    <label>🔑 Логин</label>
+                    <input type="text" name="username" placeholder="ivan.control" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label>🔒 Пароль</label>
+                    <input type="password" name="password" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    Войти в систему
+                </button>
+            </form>
+
+            <div class="register-link">
+                Нет аккаунта?
+                <a href="/auth/register">Зарегистрироваться</a>
+            </div>
+
+            <div class="demo-account">
+                <strong>🔄 Демо-доступ</strong><br>
+                Админ: admin / admin123<br>
+                Контролер: yana.control / yana123
+            </div>
+        </div>
+    </div>
+</body>
+</html>

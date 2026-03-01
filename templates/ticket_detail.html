@@ -1,0 +1,869 @@
+<!-- templates/ticket_detail.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тикет #{{ ticket.id }} | {{ ticket.title }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            padding: 24px 32px;
+        }
+
+        .top-nav {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .project-badge {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            color: #5a5e6a;
+            font-size: 14px;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            text-decoration: none;
+            color: #5a5e6a;
+        }
+
+        .nav-item:hover {
+            color: #0066cc;
+        }
+
+        .nav-item.active {
+            color: #0066cc;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-item.active:after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0066cc;
+        }
+
+        .tickets-badge {
+            background: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .user-rating {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logout-btn:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .projects-strip {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .project-tag {
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: default;
+            text-decoration: none;
+        }
+
+        .project-tag.add {
+            background: #0066cc;
+            color: white;
+            cursor: pointer;
+        }
+
+        .project-tag.all {
+            background: #ffffff;
+            color: #2c3e50;
+            border: 1px solid #d0d7de;
+            cursor: pointer;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .back-link:hover {
+            color: #0066cc;
+        }
+
+        .ticket-container {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #edf0f5;
+        }
+
+        .ticket-title h1 {
+            font-size: 28px;
+            color: #0a1e3c;
+            margin-bottom: 8px;
+        }
+
+        .ticket-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .status-new {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-progress {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-cancelled {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .ticket-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        .main-info {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-header h2 {
+            font-size: 20px;
+            color: #0a1e3c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .info-label {
+            color: #6c757d;
+        }
+
+        .info-value {
+            font-weight: 500;
+            color: #0b1f3a;
+        }
+
+        .description-box {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        .description-box p {
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        .work-results {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #28a745;
+        }
+
+        .work-results h3 {
+            color: #28a745;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .work-results p {
+            color: #2c3e50;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .work-results a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+
+        .work-results a:hover {
+            text-decoration: underline;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .history-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e9ecef;
+        }
+
+        .history-icon {
+            width: 40px;
+            height: 40px;
+            background: #eef2ff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #0066cc;
+            font-size: 20px;
+        }
+
+        .history-content {
+            flex: 1;
+        }
+
+        .history-action {
+            font-weight: 600;
+            color: #0b1f3a;
+            margin-bottom: 4px;
+        }
+
+        .history-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: #8a94a6;
+            margin-bottom: 8px;
+        }
+
+        .history-comment {
+            font-size: 13px;
+            color: #2c3e50;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #0066cc;
+            margin-top: 8px;
+            white-space: pre-wrap;
+        }
+
+        .work-section {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #0b1f3a;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #edf0f5;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .btn {
+            padding: 12px 32px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0052a3;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #d0d7de;
+            color: #2c3e50;
+        }
+
+        .btn-outline:hover {
+            background: #f8f9fa;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+            .ticket-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-nav">
+        <div class="project-badge">Оценка звонков • Контроль качества</div>
+        <div class="nav-links">
+            <a href="/" class="nav-item {% if request.url.path == '/' %}active{% endif %}">Дашборд</a>
+            <a href="/operators" class="nav-item {% if request.url.path == '/operators' %}active{% endif %}">Операторы</a>
+            <a href="/projects" class="nav-item {% if request.url.path == '/projects' %}active{% endif %}">Проекты</a>
+            <a href="/reports" class="nav-item {% if request.url.path == '/reports' %}active{% endif %}">Отчеты</a>
+            <a href="/tickets" class="nav-item {% if request.url.path == '/tickets' %}active{% endif %}">
+                Тикеты на проработку
+                <span class="tickets-badge">{{ tickets_count }}</span>
+            </a>
+            <a href="/auth/profile" class="nav-item {% if request.url.path == '/auth/profile' %}active{% endif %}">Профиль</a>
+            {% if user and user.role == 'admin' %}
+            <a href="/admin" class="nav-item {% if request.url.path == '/admin' %}active{% endif %}">Админ</a>
+            {% endif %}
+        </div>
+        <div class="user-rating">
+            <div class="user-info">
+                <div class="user-avatar">
+                    {% if user and user.avatar_letters %}
+                        {{ user.avatar_letters }}
+                    {% elif user and user.full_name %}
+                        {{ user.full_name[:2]|upper }}
+                    {% else %}
+                        АД
+                    {% endif %}
+                </div>
+                <span style="font-size: 14px; font-weight: 500;">
+                    {% if user and user.full_name %}
+                        {{ user.full_name.split()[0] }}
+                    {% else %}
+                        Админ
+                    {% endif %}
+                </span>
+            </div>
+            <a href="/auth/logout" style="text-decoration: none;" onclick="return confirm('Вы действительно хотите выйти?');">
+                <button class="logout-btn" type="button">
+                    🚪 Выйти
+                </button>
+            </a>
+        </div>
+    </div>
+
+    <!-- Проекты -->
+    <div class="projects-strip">
+        {% for project in projects %}
+            <a href="/project/{{ project.id }}" class="project-tag" style="background: #f0f3fa;">
+                📁 {{ project.name }}
+            </a>
+        {% else %}
+            <span class="project-tag" style="background: #f0f3fa;">📁 Нет проектов</span>
+        {% endfor %}
+        
+        {% if user and user.role in ['admin', 'controller'] %}
+        <span class="project-tag add" onclick="window.location.href='/projects'">➕ Добавить проект</span>
+        {% endif %}
+        
+        <span class="project-tag all" onclick="window.location.href='/projects'">
+            📋 Все проекты ({{ projects|length }})
+        </span>
+    </div>
+
+    <a href="/tickets" class="back-link">
+        ← Назад к списку тикетов
+    </a>
+
+    <div class="ticket-container">
+        <div class="ticket-header">
+            <div class="ticket-title">
+                <h1>{{ ticket.title }}</h1>
+                <div class="ticket-meta">
+                    <span>🎫 ID: {{ ticket.id }}</span>
+                    <span>📅 {{ ticket.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                    <span>👤 {{ ticket.creator.full_name }}</span>
+                </div>
+            </div>
+            <div>
+                {% if ticket.status == 'new' %}
+                <span class="status-badge status-new">🆕 Новый</span>
+                {% elif ticket.status == 'in_progress' %}
+                <span class="status-badge status-progress">🔄 В работе</span>
+                {% elif ticket.status == 'completed' %}
+                <span class="status-badge status-completed">✅ Выполнен</span>
+                {% elif ticket.status == 'cancelled' %}
+                <span class="status-badge status-cancelled">❌ Отменен</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="ticket-grid">
+            <div>
+                <!-- Основная информация -->
+                <div class="main-info">
+                    <div class="section-header">
+                        <h2>
+                            <span>📋</span>
+                            Информация о тикете
+                        </h2>
+                    </div>
+
+                    <div class="info-row">
+                        <span class="info-label">Оператор</span>
+                        <span class="info-value">
+                            <a href="/operator/{{ ticket.operator.id }}" style="color: #0066cc; text-decoration: none;">
+                                {{ ticket.operator.full_name }}
+                            </a>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Проект</span>
+                        <span class="info-value">
+                            <a href="/project/{{ ticket.project.id }}" style="color: #0066cc; text-decoration: none;">
+                                {{ ticket.project.name }}
+                            </a>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Тема</span>
+                        <span class="info-value">
+                            {% if ticket.topic == 'general' %}
+                                📋 Общая проработка
+                            {% elif ticket.topic == 'evaluation' %}
+                                📞 По результатам оценки
+                            {% elif ticket.topic == 'metric' %}
+                                📏 По метрике
+                            {% elif ticket.topic == 'block' %}
+                                📊 По блоку
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Приоритет</span>
+                        <span class="info-value">
+                            {% if ticket.priority == 'low' %}
+                                Низкий
+                            {% elif ticket.priority == 'medium' %}
+                                Средний
+                            {% elif ticket.priority == 'high' %}
+                                Высокий
+                            {% elif ticket.priority == 'critical' %}
+                                Критичный
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% if ticket.sla_deadline %}
+                    <div class="info-row">
+                        <span class="info-label">SLA дедлайн</span>
+                        <span class="info-value">
+                            {% set days_left = (ticket.sla_deadline - date.today()).days %}
+                            <span class="{% if days_left < 0 %}sla-overdue{% elif days_left <= 2 %}sla-warning{% else %}sla-normal{% endif %}">
+                                {{ ticket.sla_deadline.strftime('%d.%m.%Y') }}
+                                {% if days_left < 0 %}
+                                    (просрочено на {{ days_left|abs }} дн.)
+                                {% elif days_left == 0 %}
+                                    (сегодня)
+                                {% elif days_left > 0 %}
+                                    (осталось {{ days_left }} дн.)
+                                {% endif %}
+                            </span>
+                        </span>
+                    </div>
+                    {% endif %}
+                    {% if ticket.evaluation_id %}
+                    <div class="info-row">
+                        <span class="info-label">Оценка</span>
+                        <span class="info-value">
+                            <a href="/evaluation/{{ ticket.evaluation_id }}" style="color: #0066cc; text-decoration: none;">
+                                #{{ ticket.evaluation_id }}
+                            </a>
+                        </span>
+                    </div>
+                    {% endif %}
+
+                    <div class="description-box">
+                        <h3 style="margin-bottom: 12px;">Описание</h3>
+                        <p>{{ ticket.description or 'Нет описания' }}</p>
+                    </div>
+
+                    <!-- Результаты проработки для завершенных тикетов -->
+                    {% if ticket.status == 'completed' %}
+                        {% if ticket.work_comment or ticket.meeting_link or ticket.block_id or ticket.metric_id %}
+                        <div class="work-results">
+                            <h3>
+                                <span>✅</span>
+                                Результаты проработки
+                            </h3>
+                            
+                            {% if ticket.work_comment %}
+                            <div style="margin-bottom: 16px;">
+                                <strong>📝 Комментарий:</strong>
+                                <p style="margin-top: 8px;">{{ ticket.work_comment }}</p>
+                            </div>
+                            {% endif %}
+                            
+                            {% if ticket.meeting_link %}
+                            <div style="margin-bottom: 16px;">
+                                <strong>🔗 Ссылка на встречу:</strong><br>
+                                <a href="{{ ticket.meeting_link }}" target="_blank">{{ ticket.meeting_link }}</a>
+                            </div>
+                            {% endif %}
+                            
+                            {% if ticket.block_id %}
+                            <div style="margin-bottom: 8px;">
+                                <strong>📁 Блок:</strong> {{ ticket.block.name if ticket.block else 'Не указан' }}
+                            </div>
+                            {% endif %}
+                            
+                            {% if ticket.metric_id %}
+                            <div>
+                                <strong>📏 Метрика:</strong> {{ ticket.metric.name if ticket.metric else 'Не указана' }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <!-- Блок для работы с тикетом (для админов) -->
+                {% if ticket.status == 'in_progress' and (user.role == 'admin' or ticket.assigned_to == user.id) %}
+                <div class="work-section">
+                    <div class="section-header">
+                        <h2>
+                            <span>✅</span>
+                            Завершить проработку
+                        </h2>
+                    </div>
+
+                    <form id="completeTicketForm">
+                        <div class="form-group">
+                            <label>📁 Блок (если применимо)</label>
+                            <select name="block_id" id="blockSelect">
+                                <option value="">Не выбрано</option>
+                                {% for block in blocks %}
+                                <option value="{{ block.id }}">{{ block.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>📏 Метрика (если применимо)</label>
+                            <select name="metric_id" id="metricSelect">
+                                <option value="">Не выбрано</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>🔗 Ссылка на встречу</label>
+                            <input type="url" name="meeting_link" placeholder="https://...">
+                        </div>
+
+                        <div class="form-group">
+                            <label>📝 Комментарий по проработке</label>
+                            <textarea name="work_comment" rows="4" placeholder="Опишите результаты проработки..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-success">Завершить тикет</button>
+                    </form>
+                </div>
+                {% endif %}
+
+                <!-- Кнопка "Взять в работу" для админов -->
+                {% if ticket.status == 'new' and user.role == 'admin' %}
+                <div style="margin-top: 24px;">
+                    <button class="btn btn-primary" onclick="takeTicket({{ ticket.id }})">
+                        ✅ Взять в работу
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- История изменений -->
+            <div class="main-info">
+                <div class="section-header">
+                    <h2>
+                        <span>📜</span>
+                        История изменений
+                    </h2>
+                </div>
+
+                <div class="history-list">
+                    {% for item in history %}
+                    <div class="history-item">
+                        <div class="history-icon">
+                            {% if item.action == 'created' %}📝
+                            {% elif item.action == 'taken' %}✅
+                            {% elif item.action == 'completed' %}🎉
+                            {% else %}🔄
+                            {% endif %}
+                        </div>
+                        <div class="history-content">
+                            <div class="history-action">
+                                {% if item.action == 'created' %}
+                                    Тикет создан
+                                {% elif item.action == 'taken' %}
+                                    Взят в работу
+                                {% elif item.action == 'completed' %}
+                                    Завершен
+                                {% else %}
+                                    {{ item.action }}
+                                {% endif %}
+                            </div>
+                            <div class="history-meta">
+                                <span>👤 {{ item.user.full_name }}</span>
+                                <span>📅 {{ item.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                            </div>
+                            {% if item.comment %}
+                            <div class="history-comment">
+                                {{ item.comment }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Загрузка метрик при выборе блока
+        document.getElementById('blockSelect')?.addEventListener('change', function() {
+            const blockId = this.value;
+            const metricSelect = document.getElementById('metricSelect');
+            
+            if (!blockId) {
+                metricSelect.innerHTML = '<option value="">Не выбрано</option>';
+                return;
+            }
+
+            fetch(`/api/blocks/${blockId}/metrics`)
+                .then(response => response.json())
+                .then(metrics => {
+                    metricSelect.innerHTML = '<option value="">Не выбрано</option>';
+                    metrics.forEach(metric => {
+                        const option = document.createElement('option');
+                        option.value = metric.id;
+                        option.textContent = metric.name;
+                        metricSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Ошибка загрузки метрик:', error));
+        });
+
+        // Завершение тикета
+        document.getElementById('completeTicketForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const workComment = formData.get('work_comment');
+            
+            const data = {
+                block_id: formData.get('block_id') || null,
+                metric_id: formData.get('metric_id') || null,
+                meeting_link: formData.get('meeting_link'),
+                work_comment: workComment,
+                comment: workComment || 'Тикет завершен'
+            };
+
+            fetch(`/api/tickets/{{ ticket.id }}/complete`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('✅ Тикет завершен');
+                    location.reload();
+                } else {
+                    alert('❌ ' + (data.detail || 'Ошибка'));
+                }
+            })
+            .catch(error => {
+                alert('❌ Ошибка сети');
+                console.error(error);
+            });
+        });
+
+        // Взять тикет в работу
+        function takeTicket(ticketId) {
+            if (!confirm('Взять этот тикет в работу?')) return;
+
+            fetch(`/api/tickets/${ticketId}/take`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('✅ Тикет взят в работу');
+                    location.reload();
+                } else {
+                    alert('❌ ' + (data.detail || 'Ошибка'));
+                }
+            })
+            .catch(error => {
+                alert('❌ Ошибка сети');
+                console.error(error);
+            });
+        }
+    </script>
+</body>
+</html>

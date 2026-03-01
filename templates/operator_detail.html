@@ -1,0 +1,1109 @@
+<!-- templates/operator_detail.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ operator.full_name }} | Оператор</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            padding: 24px 32px;
+        }
+
+        .top-nav {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .project-badge {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            color: #5a5e6a;
+            font-size: 14px;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            text-decoration: none;
+            color: #5a5e6a;
+        }
+
+        .nav-item:hover {
+            color: #0066cc;
+        }
+
+        .nav-item.active {
+            color: #0066cc;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-item.active:after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0066cc;
+        }
+
+        .user-rating {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logout-btn:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .back-link:hover {
+            color: #0066cc;
+        }
+
+        .operator-profile {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+            margin-bottom: 24px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 32px;
+            padding-bottom: 32px;
+            border-bottom: 2px solid #edf0f5;
+        }
+
+        .operator-avatar-large {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 42px;
+            font-weight: 600;
+        }
+
+        .profile-title h1 {
+            font-size: 32px;
+            color: #0a1e3c;
+            margin-bottom: 8px;
+        }
+
+        .profile-meta {
+            display: flex;
+            gap: 16px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .project-chip {
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: #f8faff;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .stat-trend {
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .trend-up { color: #0b6b0b; }
+        .trend-down { color: #dc3545; }
+        .trend-stable { color: #856404; }
+
+        .chart-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .chart-header h2 {
+            font-size: 20px;
+            color: #0a1e3c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-filters {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .date-filter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .date-input {
+            padding: 8px 12px;
+            border: 2px solid #edf0f5;
+            border-radius: 30px;
+            font-size: 13px;
+            background: white;
+            width: 130px;
+        }
+
+        .metric-filter {
+            padding: 8px 16px;
+            border: 2px solid #edf0f5;
+            border-radius: 30px;
+            font-size: 13px;
+            background: white;
+            min-width: 180px;
+        }
+
+        .chart-container {
+            height: 350px;
+            position: relative;
+        }
+
+        .evaluations-section {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .section-header h2 {
+            font-size: 20px;
+            color: #0a1e3c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .evaluations-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .evaluations-table th {
+            text-align: left;
+            padding: 12px 0;
+            color: #6c757d;
+            font-weight: 500;
+            font-size: 13px;
+            border-bottom: 2px solid #edf0f5;
+        }
+
+        .evaluations-table td {
+            padding: 16px 0;
+            border-bottom: 1px solid #f0f3f8;
+            vertical-align: middle;
+        }
+
+        .clickable-row {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .clickable-row:hover {
+            background-color: #f0f7ff;
+        }
+
+        .quality-badge {
+            background: #e6f7e6;
+            color: #0b6b0b;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .quality-badge-low {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0052a3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,102,204,0.2);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #0066cc;
+            color: #0066cc;
+        }
+
+        .btn-outline:hover {
+            background: #e6f0ff;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: #6c757d;
+            background: #f8f9fa;
+            border-radius: 16px;
+        }
+
+        .hidden-data {
+            display: none;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #edf0f5;
+        }
+
+        .modal-header h2 {
+            font-size: 22px;
+            color: #0a1e3c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .modal-close:hover {
+            color: #dc3545;
+        }
+
+        .metrics-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .metric-info h3 {
+            font-size: 16px;
+            color: #0b1f3a;
+            margin-bottom: 4px;
+        }
+
+        .metric-tags {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tag {
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .tag-max {
+            background: #e8eaf6;
+            color: #1a237e;
+        }
+
+        .tag-weight {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .metric-score {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0066cc;
+        }
+
+        .metric-na {
+            color: #8a94a6;
+            font-style: italic;
+        }
+
+        .call-info-modal {
+            background: #eef2ff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .call-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .call-info-label {
+            color: #6c757d;
+            font-size: 13px;
+        }
+
+        .call-info-value {
+            font-weight: 600;
+            color: #0a1e3c;
+        }
+
+        .call-link-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #0066cc;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        .call-link-button:hover {
+            background: #0052a3;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .chart-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .chart-filters {
+                width: 100%;
+            }
+            .date-filter {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+            .date-input {
+                width: 100%;
+            }
+            .metric-filter {
+                width: 100%;
+            }
+            .evaluations-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% if user %}
+    <div class="top-nav">
+        <div class="project-badge">Оценка звонков • Оператор</div>
+        <div class="nav-links">
+            <a href="/" class="nav-item {% if request.url.path == '/' %}active{% endif %}">Дашборд</a>
+            <a href="/operators" class="nav-item {% if request.url.path == '/operators' %}active{% endif %}">Операторы</a>
+            <a href="/projects" class="nav-item">Проекты</a>
+            <a href="/reports" class="nav-item">Отчеты</a>
+            <a href="/auth/profile" class="nav-item">Профиль</a>
+            {% if user.role == 'admin' %}
+            <a href="/admin" class="nav-item">Админ</a>
+            {% endif %}
+        </div>
+        <div class="user-rating">
+            <div class="user-info">
+                <div class="user-avatar">
+                    {{ user.avatar_letters if user.avatar_letters else user.full_name[:2]|upper }}
+                </div>
+                <span style="font-size: 14px; font-weight: 500;">
+                    {{ user.full_name.split()[0] }}
+                </span>
+            </div>
+            <a href="/auth/logout" style="text-decoration: none;" onclick="return confirm('Вы действительно хотите выйти?');">
+                <button class="logout-btn" type="button">
+                    🚪 Выйти
+                </button>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if operator %}
+    <a href="/operators{% if selected_project %}?project_id={{ selected_project }}{% endif %}" class="back-link">
+        ← Назад к операторам
+    </a>
+
+    <!-- СКРЫТЫЕ ДАННЫЕ -->
+    <div id="evaluationsData" class="hidden-data" data-evaluations='{{ evaluations_json|tojson }}'></div>
+    <div id="metricsData" class="hidden-data" data-metrics='{{ metrics_json|tojson }}'></div>
+    <div id="operatorId" class="hidden-data" data-operator-id="{{ operator.id }}"></div>
+
+    <!-- Профиль оператора -->
+    <div class="operator-profile">
+        <div class="profile-header">
+            <div class="operator-avatar-large">
+                {{ operator.avatar_letters or operator.full_name[:2] }}
+            </div>
+            <div class="profile-title">
+                <h1>{{ operator.full_name }}</h1>
+                <div class="profile-meta">
+                    <span>🔑 {{ operator.login }}</span>
+                    {% if operator.project %}
+                    <span class="project-chip" 
+                          {% if operator.project.name == 'Re: Развитие' %}
+                          style="background: #e8eaf6; color: #1a237e;"
+                          {% else %}
+                          style="background: #f3e5f5; color: #4a148c;"
+                          {% endif %}>
+                        {{ operator.project.name }}
+                    </span>
+                    {% endif %}
+                    {% if operator.hire_date %}
+                    <span>📅 Стаж: {{ operator.experience_days }} дней</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div style="margin-left: auto;">
+                <a href="/evaluate/{{ operator.id }}" style="text-decoration: none;">
+                    <button class="btn btn-primary">
+                        🎤 Оценить звонок
+                    </button>
+                </a>
+            </div>
+        </div>
+
+        {% if stats %}
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.avg_quality|round|int }}%</div>
+                <div class="stat-label">Среднее качество</div>
+                {% if stats.dynamic %}
+                <div class="stat-trend {% if stats.dynamic > 0 %}trend-up{% elif stats.dynamic < 0 %}trend-down{% else %}trend-stable{% endif %}">
+                    {{ stats.dynamic|round(1) }}% за 30 дней
+                </div>
+                {% endif %}
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.evaluations_count }}</div>
+                <div class="stat-label">Оценок за 30 дней</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ operator.total_calls or 0 }}</div>
+                <div class="stat-label">Всего оценок</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stats.experience_days or 0 }}</div>
+                <div class="stat-label">Дней в проекте</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- График динамики с фильтрами -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <h2>
+                    <span>📈</span>
+                    Динамика качества
+                </h2>
+                <div class="chart-filters">
+                    <div class="date-filter">
+                        <input type="text" id="startDate" class="date-input" placeholder="Начальная дата">
+                        <span>—</span>
+                        <input type="text" id="endDate" class="date-input" placeholder="Конечная дата">
+                    </div>
+                    <select id="metricFilter" class="metric-filter">
+                        <option value="all">Все метрики</option>
+                        {% for metric in metrics %}
+                        <option value="{{ metric.id }}">{{ metric.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="qualityChart"></canvas>
+            </div>
+        </div>
+
+        <!-- История оценок -->
+        <div class="evaluations-section">
+            <div class="section-header">
+                <h2>
+                    <span>📞</span>
+                    История оценок
+                </h2>
+                <span style="color: #6c757d;">Всего: {{ evaluations|length }}</span>
+            </div>
+
+            {% if evaluations %}
+            <div style="overflow-x: auto;">
+                <table class="evaluations-table">
+                    <thead>
+                        <tr>
+                            <th>Дата звонка</th>
+                            <th>Оценка</th>
+                            <th>Контролер</th>
+                            <th>Комментарий</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for eval in evaluations %}
+                        <tr class="clickable-row" data-evaluation-id="{{ eval.id }}">
+                            <td style="color: #0b1f3a; font-weight: 500;">{{ eval.call_date.strftime('%d.%m.%Y') }}</td>
+                            <td>
+                                {% if eval.quality_percent < 50 %}
+                                    <span class="quality-badge quality-badge-low">{{ eval.quality_percent|round|int }}%</span>
+                                {% else %}
+                                    <span class="quality-badge">{{ eval.quality_percent|round|int }}%</span>
+                                {% endif %}
+                            </td>
+                            <td style="color: #6c757d;">{{ eval.evaluator.full_name }}</td>
+                            <td style="color: #6c757d; max-width: 250px;">
+                                {{ eval.comment or '—' }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div>📞</div>
+                <h3>Нет оценок</h3>
+                <p style="margin-bottom: 20px;">У оператора пока нет оцененных звонков</p>
+                <a href="/evaluate/{{ operator.id }}" style="text-decoration: none;">
+                    <button class="btn btn-primary">➕ Оценить звонок</button>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="operator-profile" style="text-align: center; padding: 60px;">
+        <div style="font-size: 64px; margin-bottom: 16px;">👤</div>
+        <h1 style="color: #0a1e3c; margin-bottom: 8px;">Оператор не найден</h1>
+        <p style="color: #6c757d; margin-bottom: 24px;">Запрошенный оператор не существует или был удален</p>
+        <a href="/operators" class="btn btn-primary">← Назад к операторам</a>
+    </div>
+    {% endif %}
+
+    <!-- Модальное окно деталей звонка -->
+    <div id="callModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>
+                    <span>📞</span>
+                    Детали звонка от <span id="callDate"></span>
+                </h2>
+                <button class="modal-close" id="closeModalBtn">×</button>
+            </div>
+            <div id="callDetails"></div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // Получаем данные из скрытых элементов
+            const operatorIdEl = document.getElementById('operatorId');
+            const operatorId = operatorIdEl ? parseInt(operatorIdEl.dataset.operatorId) : null;
+            
+            let evaluationsData = [];
+            const evalDiv = document.getElementById('evaluationsData');
+            if (evalDiv && evalDiv.dataset.evaluations) {
+                try {
+                    evaluationsData = JSON.parse(evalDiv.dataset.evaluations);
+                } catch (e) {
+                    console.error('Ошибка парсинга оценок:', e);
+                }
+            }
+
+            let metricsData = [];
+            const metricsDiv = document.getElementById('metricsData');
+            if (metricsDiv && metricsDiv.dataset.metrics) {
+                try {
+                    metricsData = JSON.parse(metricsDiv.dataset.metrics);
+                } catch (e) {
+                    console.error('Ошибка парсинга метрик:', e);
+                }
+            }
+
+            // Инициализация date pickers
+            function initDatePickers() {
+                const today = new Date();
+                const oneMonthAgo = new Date();
+                oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+                flatpickr("#startDate", {
+                    defaultDate: oneMonthAgo,
+                    dateFormat: "Y-m-d",
+                    onChange: function() { setTimeout(updateChart, 100); }
+                });
+                
+                flatpickr("#endDate", {
+                    defaultDate: today,
+                    dateFormat: "Y-m-d",
+                    onChange: function() { setTimeout(updateChart, 100); }
+                });
+            }
+
+            // Функция обновления графика
+            async function updateChart() {
+                const startDate = document.getElementById('startDate')?.value;
+                const endDate = document.getElementById('endDate')?.value;
+                const metricFilter = document.getElementById('metricFilter');
+                const metricId = metricFilter ? metricFilter.value : 'all';
+                
+                if (!startDate || !endDate || !operatorId) return;
+
+                try {
+                    const canvas = document.getElementById('qualityChart');
+                    if (!canvas) return;
+                    
+                    const ctx = canvas.getContext('2d');
+                    
+                    // ✅ ИСПРАВЛЕНО: безопасное удаление графика
+                    if (window.qualityChart) {
+                        try {
+                            window.qualityChart.destroy();
+                        } catch (e) {
+                            console.log('Ошибка при destroy, создаем новый canvas');
+                        }
+                        window.qualityChart = null;
+                    }
+
+                    // Очищаем canvas
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    // Формируем URL
+                    let url = `/api/operator/${operatorId}/dynamics?start_date=${startDate}&end_date=${endDate}`;
+                    if (metricId && metricId !== 'all') {
+                        url += `&metric_id=${metricId}`;
+                    }
+
+                    console.log('📤 Запрос к API:', url);
+
+                    // Запрашиваем данные
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const weeksData = await response.json();
+                    
+                    console.log('📥 Получены данные:', weeksData);
+
+                    if (!weeksData || weeksData.length === 0) {
+                        // Показываем сообщение об отсутствии данных
+                        ctx.font = '16px Arial';
+                        ctx.fillStyle = '#6c757d';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('Нет данных за выбранный период', canvas.width/2, canvas.height/2);
+                        return;
+                    }
+
+                    // Создаем график
+                    window.qualityChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: weeksData.map(w => w.week),
+                            datasets: [{
+                                label: metricId && metricId !== 'all' ? 'Качество по метрике %' : 'Общее качество %',
+                                data: weeksData.map(w => w.quality),
+                                borderColor: '#0066cc',
+                                backgroundColor: 'rgba(0,102,204,0.1)',
+                                borderWidth: 2,
+                                pointBackgroundColor: '#0066cc',
+                                pointBorderColor: 'white',
+                                pointBorderWidth: 2,
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                tension: 0.3,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: 'white',
+                                    titleColor: '#0a1e3c',
+                                    bodyColor: '#6c757d',
+                                    borderColor: '#edf0f5',
+                                    borderWidth: 1,
+                                    padding: 12,
+                                    callbacks: {
+                                        label: function(context) {
+                                            const dataPoint = weeksData[context.dataIndex];
+                                            return [
+                                                `Качество: ${context.raw}%`,
+                                                `Оценок: ${dataPoint.count || 0}`
+                                            ];
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    grid: { color: '#edf0f5' },
+                                    title: {
+                                        display: true,
+                                        text: 'Качество %'
+                                    }
+                                },
+                                x: {
+                                    grid: { display: false },
+                                    title: {
+                                        display: true,
+                                        text: 'Недели'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.error('❌ Ошибка загрузки данных графика:', error);
+                    
+                    // Показываем ошибку на графике
+                    const canvas = document.getElementById('qualityChart');
+                    if (canvas) {
+                        const ctx = canvas.getContext('2d');
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.font = '16px Arial';
+                        ctx.fillStyle = '#dc3545';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('Ошибка загрузки данных', canvas.width/2, canvas.height/2);
+                    }
+                }
+            }
+
+            // Функция открытия модального окна
+            function openCallModal(evaluationId) {
+                const evaluation = evaluationsData.find(e => e.id === evaluationId);
+                if (!evaluation) return;
+
+                // Форматируем дату
+                document.getElementById('callDate').textContent = evaluation.call_date;
+
+                // Формируем HTML метрик
+                let metricsHtml = '';
+                
+                if (evaluation.metrics && evaluation.metrics.length > 0) {
+                    evaluation.metrics.forEach(metric => {
+                        if (metric.is_not_evaluated) {
+                            metricsHtml += `
+                                <div class="metric-item">
+                                    <div class="metric-info">
+                                        <h3>${metric.metric.name}</h3>
+                                        <div class="metric-tags">
+                                            <span class="tag tag-max">max ${metric.max_score}</span>
+                                            <span class="tag tag-weight">вес ${metric.weight}</span>
+                                        </div>
+                                    </div>
+                                    <div class="metric-na">Н/О</div>
+                                </div>
+                            `;
+                        } else {
+                            const percent = Math.round((metric.earned_score / metric.max_score) * 100);
+                            metricsHtml += `
+                                <div class="metric-item">
+                                    <div class="metric-info">
+                                        <h3>${metric.metric.name}</h3>
+                                        <div class="metric-tags">
+                                            <span class="tag tag-max">max ${metric.max_score}</span>
+                                            <span class="tag tag-weight">вес ${metric.weight}</span>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <span class="metric-score">${metric.earned_score}/${metric.max_score}</span>
+                                        <span class="quality-badge" style="margin: 0;">${percent}%</span>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+
+                // Ссылка на запись
+                const callLinkHtml = evaluation.call_link ? 
+                    `<a href="${evaluation.call_link}" target="_blank" class="call-link-button">
+                        <span>🔗</span> Слушать запись
+                    </a>` : 
+                    '<p style="color: #8a94a6;">Ссылка на запись отсутствует</p>';
+
+                // Детали звонка
+                const detailsHtml = `
+                    <div class="call-info-modal">
+                        <div class="call-info-row">
+                            <span class="call-info-label">Контролер:</span>
+                            <span class="call-info-value">${evaluation.evaluator.full_name}</span>
+                        </div>
+                        <div class="call-info-row">
+                            <span class="call-info-label">Итоговая оценка:</span>
+                            <span class="call-info-value" style="color: ${evaluation.quality_percent < 50 ? '#dc3545' : '#0b6b0b'};">${Math.round(evaluation.quality_percent)}%</span>
+                        </div>
+                        ${evaluation.comment ? `
+                        <div class="call-info-row">
+                            <span class="call-info-label">Комментарий:</span>
+                            <span class="call-info-value">${evaluation.comment}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <h3 style="margin-bottom: 16px; margin-top: 24px; color: #0a1e3c;">📏 Метрики оценки</h3>
+                    <div class="metrics-list">
+                        ${metricsHtml}
+                    </div>
+
+                    <div style="margin-top: 24px;">
+                        ${callLinkHtml}
+                    </div>
+                `;
+
+                document.getElementById('callDetails').innerHTML = detailsHtml;
+                document.getElementById('callModal').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+
+            // Закрытие модального окна
+            function closeCallModal() {
+                document.getElementById('callModal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+
+            // Инициализация при загрузке страницы
+            document.addEventListener('DOMContentLoaded', function() {
+                // Инициализируем date pickers
+                initDatePickers();
+
+                // Обработчики для кликабельных строк
+                document.querySelectorAll('.clickable-row').forEach(row => {
+                    row.addEventListener('click', function() {
+                        const evaluationId = this.dataset.evaluationId;
+                        if (evaluationId) {
+                            openCallModal(parseInt(evaluationId));
+                        }
+                    });
+                });
+
+                // Кнопка закрытия модального окна
+                const closeBtn = document.getElementById('closeModalBtn');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', closeCallModal);
+                }
+
+                // Закрытие по клику вне модалки
+                window.addEventListener('click', function(e) {
+                    const modal = document.getElementById('callModal');
+                    if (e.target === modal) {
+                        closeCallModal();
+                    }
+                });
+
+                // Закрытие по ESC
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        closeCallModal();
+                    }
+                });
+
+                // Обработчик изменения метрики
+                const metricFilter = document.getElementById('metricFilter');
+                if (metricFilter) {
+                    metricFilter.addEventListener('change', function() {
+                        setTimeout(updateChart, 100);
+                    });
+                }
+
+                // Загружаем график
+                setTimeout(updateChart, 500);
+            });
+
+        })();
+    </script>
+</body>
+</html>

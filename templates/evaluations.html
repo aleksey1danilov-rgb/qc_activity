@@ -1,0 +1,1550 @@
+<!-- templates/evaluations.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оцененные звонки | Оценка звонков</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            padding: 24px 32px;
+        }
+
+        .top-nav {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .project-badge {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            color: #5a5e6a;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            text-decoration: none;
+            color: #5a5e6a;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            color: #0066cc;
+        }
+
+        .nav-item.active {
+            color: #0066cc;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-item.active:after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0066cc;
+        }
+
+        .tickets-badge {
+            background: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .user-rating {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logout-btn:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .projects-strip {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .project-tag {
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: default;
+            text-decoration: none;
+        }
+
+        .project-tag.add {
+            background: #0066cc;
+            color: white;
+            cursor: pointer;
+        }
+
+        .project-tag.all {
+            background: #ffffff;
+            color: #2c3e50;
+            border: 1px solid #d0d7de;
+            cursor: pointer;
+        }
+
+        .evaluations-container {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+
+        .evaluations-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .evaluations-header h1 {
+            font-size: 28px;
+            color: #0a1e3c;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-refresh {
+            background: transparent;
+            border: 1px solid #6c757d;
+            color: #6c757d;
+            padding: 10px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-refresh:hover {
+            background: #6c757d;
+            color: white;
+            transform: rotate(180deg);
+        }
+
+        .btn-refresh:active {
+            transform: rotate(360deg);
+        }
+
+        .filters-panel {
+            background: #f8faff;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid #e0e7ff;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .filter-select, .filter-input {
+            padding: 10px 14px;
+            border: 2px solid #edf0f5;
+            border-radius: 12px;
+            font-size: 14px;
+            background: white;
+            width: 100%;
+        }
+
+        .filter-select:focus, .filter-input:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0052a3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,102,204,0.2);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(40,167,69,0.2);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #0066cc;
+            color: #0066cc;
+        }
+
+        .btn-outline:hover {
+            background: #e6f0ff;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220,53,69,0.2);
+        }
+
+        .evaluation-card {
+            background: white;
+            border: 2px solid #edf0f5;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .evaluation-card:hover {
+            border-color: #0066cc;
+            box-shadow: 0 8px 24px rgba(0,102,204,0.1);
+        }
+
+        .evaluation-header {
+            background: #f8faff;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e0e7ff;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .evaluation-main-info {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .info-item .label {
+            color: #6c757d;
+        }
+
+        .info-item .value {
+            font-weight: 600;
+            color: #0a1e3c;
+        }
+
+        .duration-input {
+            width: 70px;
+            padding: 4px 8px;
+            border: 2px solid #edf0f5;
+            border-radius: 8px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .duration-input:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .duration-save-btn {
+            background: transparent;
+            border: 1px solid #28a745;
+            color: #28a745;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .duration-save-btn:hover {
+            background: #28a745;
+            color: white;
+        }
+
+        .duration-display {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: #e8f5e9;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #2e7d32;
+        }
+
+        .duration-edit {
+            display: none;
+            align-items: center;
+            gap: 4px;
+            background: #fff3e0;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .total-quality {
+            background: #e6f7e6;
+            color: #0b6b0b;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .edit-btn {
+            background: transparent;
+            border: 1px solid #ffc107;
+            color: #ffc107;
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+        }
+
+        .edit-btn:hover {
+            background: #ffc107;
+            color: white;
+        }
+
+        /* Стиль для кнопки удаления */
+        .delete-btn {
+            background: transparent;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+        }
+
+        .delete-btn:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .ticket-badge {
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .ticket-badge.exists {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .ticket-badge.new {
+            background: #dc3545;
+            color: white;
+        }
+
+        .ticket-badge.progress {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .ticket-badge.completed {
+            background: #28a745;
+            color: white;
+        }
+
+        .ticket-badge.none {
+            background: #e2e3e5;
+            color: #6c757d;
+        }
+
+        .evaluation-body {
+            padding: 20px;
+        }
+
+        .blocks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .block-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .block-name {
+            font-weight: 600;
+            color: #0a1e3c;
+        }
+
+        .block-percent {
+            font-weight: 600;
+            color: #1e3a8a;
+        }
+
+        .metrics-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            padding: 4px 0;
+        }
+
+        .metric-name {
+            color: #2c3e50;
+        }
+
+        .metric-score {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .metric-score.success {
+            color: #0b6b0b;
+        }
+
+        .metric-score.fail {
+            color: #dc3545;
+        }
+
+        .metric-score.critical {
+            font-weight: 600;
+            color: #dc3545;
+        }
+
+        .metric-comment {
+            font-size: 11px;
+            color: #6c757d;
+            margin-top: 4px;
+            padding: 4px 8px;
+            background: white;
+            border-radius: 6px;
+        }
+
+        .call-link {
+            color: #0066cc;
+            text-decoration: none;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .call-link:hover {
+            text-decoration: underline;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: #6c757d;
+            background: #f8f9fa;
+            border-radius: 16px;
+        }
+
+        .empty-state div:first-child {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 8px;
+            color: #0a1e3c;
+        }
+
+        /* Модальное окно подтверждения удаления */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            overflow: hidden;
+        }
+
+        .modal-confirm {
+            border-top: 4px solid #dc3545;
+        }
+
+        .modal-header {
+            padding: 24px 24px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-icon.confirm {
+            background: #fee;
+            color: #dc3545;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #0a1e3c;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .modal-content {
+            padding: 0 24px 24px;
+        }
+
+        .modal-text {
+            color: #2c3e50;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            text-align: center;
+        }
+
+        .modal-btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .modal-btn-danger:hover {
+            background: #c82333;
+        }
+
+        .modal-btn-secondary {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #d0d7de;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .modal-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .modal-timer {
+            text-align: center;
+            color: #6c757d;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+
+        .modal-progress {
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            margin-top: 16px;
+            overflow: hidden;
+        }
+
+        .modal-progress-bar {
+            height: 100%;
+            width: 100%;
+            background: #0066cc;
+            animation: progress 3s linear;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .btn-refresh.spinning {
+            animation: spin 0.5s ease-in-out;
+        }
+
+        @media (max-width: 1200px) {
+            .nav-links {
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .nav-links {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+            .evaluation-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .evaluation-main-info {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+            .top-nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .nav-links {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+            .nav-item.active:after {
+                bottom: -5px;
+            }
+            .user-rating {
+                margin-left: 0;
+                width: 100%;
+                justify-content: space-between;
+            }
+            .header-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+            .header-actions .btn,
+            .header-actions .btn-refresh,
+            .header-actions span {
+                width: 100%;
+                text-align: center;
+            }
+            .card-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            .duration-edit {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Модальное окно подтверждения удаления оценки -->
+    <div class="modal-overlay" id="deleteEvaluationModal">
+        <div class="modal modal-confirm">
+            <div class="modal-header">
+                <div class="modal-icon confirm">
+                    🗑️
+                </div>
+                <div>
+                    <div class="modal-title">Удаление оценки</div>
+                    <div class="modal-subtitle">Подтверждение действия</div>
+                </div>
+            </div>
+            <div class="modal-content">
+                <div class="modal-text">
+                    Вы действительно хотите удалить эту оценку? Это действие нельзя отменить.
+                </div>
+
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-secondary" onclick="closeDeleteModal()">
+                        Отмена
+                    </button>
+                    <button class="modal-btn modal-btn-danger" onclick="confirmDeleteEvaluation()">
+                        Удалить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения выхода -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal modal-confirm">
+            <div class="modal-header">
+                <div class="modal-icon confirm">
+                    ⚠️
+                </div>
+                <div>
+                    <div class="modal-title">Выход из профиля</div>
+                    <div class="modal-subtitle">Подтверждение действия</div>
+                </div>
+            </div>
+            <div class="modal-content">
+                <div class="modal-text">
+                    Вы действительно хотите выйти из системы? Все несохраненные данные будут потеряны.
+                </div>
+                
+                <div class="modal-checkbox">
+                    <input type="checkbox" id="saveSession">
+                    <label for="saveSession">Запомнить меня на этом устройстве</label>
+                </div>
+
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-secondary" onclick="closeLogoutModal()">
+                        Отмена
+                    </button>
+                    <button class="modal-btn modal-btn-danger" onclick="confirmLogout()">
+                        Выйти
+                    </button>
+                </div>
+
+                <div class="modal-timer">
+                    Окно закроется через <span id="timer">5</span> сек
+                </div>
+                <div class="modal-progress">
+                    <div class="modal-progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="top-nav">
+        <div class="project-badge">Оценка звонков • Оцененные звонки</div>
+        <div class="nav-links">
+            <a href="/" class="nav-item {% if request.url.path == '/' %}active{% endif %}">Дашборд</a>
+            <a href="/operators" class="nav-item {% if request.url.path == '/operators' %}active{% endif %}">Операторы</a>
+            <a href="/projects" class="nav-item {% if request.url.path == '/projects' %}active{% endif %}">Проекты</a>
+            <a href="/evaluations" class="nav-item {% if request.url.path == '/evaluations' %}active{% endif %}">Оцененные звонки</a>
+            <a href="/reports" class="nav-item {% if request.url.path == '/reports' %}active{% endif %}">Отчеты</a>
+            <a href="/tickets" class="nav-item {% if request.url.path == '/tickets' %}active{% endif %}">
+                Тикеты на проработку
+                <span class="tickets-badge">{{ tickets_count|default(0) }}</span>
+            </a>
+            <a href="/auth/profile" class="nav-item {% if request.url.path == '/auth/profile' %}active{% endif %}">Профиль</a>
+            {% if user and user.role == 'admin' %}
+            <a href="/admin" class="nav-item {% if request.url.path == '/admin' %}active{% endif %}">Админ</a>
+            {% endif %}
+        </div>
+        <div class="user-rating">
+            <div class="user-info">
+                <div class="user-avatar">
+                    {% if user and user.avatar_letters %}
+                        {{ user.avatar_letters }}
+                    {% elif user and user.full_name %}
+                        {{ user.full_name[:2]|upper }}
+                    {% else %}
+                        АД
+                    {% endif %}
+                </div>
+                <span style="font-size: 14px; font-weight: 500;">
+                    {% if user and user.full_name %}
+                        {{ user.full_name.split()[0] }}
+                    {% else %}
+                        Админ
+                    {% endif %}
+                </span>
+            </div>
+            <button class="logout-btn" type="button" onclick="showLogoutModal()">
+                🚪 Выйти
+            </button>
+        </div>
+    </div>
+
+    <!-- Проекты -->
+    <div class="projects-strip">
+        {% for project in projects %}
+            <a href="/project/{{ project.id }}" class="project-tag" style="background: #f0f3fa;">
+                📁 {{ project.name }}
+            </a>
+        {% else %}
+            <span class="project-tag" style="background: #f0f3fa;">📁 Нет проектов</span>
+        {% endfor %}
+        
+        {% if user and user.role in ['admin', 'controller'] %}
+        <span class="project-tag add" onclick="window.location.href='/projects'">➕ Добавить проект</span>
+        {% endif %}
+        
+        <span class="project-tag all" onclick="window.location.href='/projects'">
+            📋 Все проекты ({{ projects|length }})
+        </span>
+    </div>
+
+    <div class="evaluations-container">
+        <div class="evaluations-header">
+            <h1>
+                <span>📞</span>
+                Оцененные звонки
+            </h1>
+            <div class="header-actions">
+                <span style="color: #6c757d; background: #f8f9fa; padding: 8px 16px; border-radius: 30px;">
+                    {{ evaluations|length }} 
+                    {% if evaluations|length == 1 %}
+                        звонок
+                    {% elif evaluations|length >= 2 and evaluations|length <= 4 %}
+                        звонка
+                    {% else %}
+                        звонков
+                    {% endif %}
+                </span>
+                <button class="btn-refresh" onclick="refreshData()" title="Обновить данные">
+                    <span style="font-size: 16px;">🔄</span> Обновить
+                </button>
+                <button class="btn btn-success" onclick="exportToExcel()">
+                    <span style="font-size: 16px;">📊</span> Экспорт в Excel
+                </button>
+            </div>
+        </div>
+
+        <!-- Панель фильтров -->
+        <div class="filters-panel">
+            <form method="get" action="/evaluations" id="filterForm">
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label>📁 Проект</label>
+                        <select name="project_id" class="filter-select" onchange="this.form.submit()">
+                            <option value="">Все проекты</option>
+                            {% for project in projects %}
+                            <option value="{{ project.id }}" {% if selected_project == project.id %}selected{% endif %}>
+                                {{ project.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>👤 Оператор</label>
+                        <select name="operator_id" class="filter-select" onchange="this.form.submit()">
+                            <option value="">Все операторы</option>
+                            {% for operator in operators %}
+                            <option value="{{ operator.id }}" {% if selected_operator == operator.id %}selected{% endif %}>
+                                {{ operator.full_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>🎤 Аудитор</label>
+                        <select name="auditor_id" class="filter-select" onchange="this.form.submit()">
+                            <option value="">Все аудиторы</option>
+                            {% for auditor in auditors %}
+                            <option value="{{ auditor.id }}" {% if selected_auditor == auditor.id %}selected{% endif %}>
+                                {{ auditor.full_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>📅 Дата звонка от</label>
+                        <input type="date" name="start_date" class="filter-input" value="{{ start_date or '' }}" onchange="this.form.submit()">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>📅 Дата звонка до</label>
+                        <input type="date" name="end_date" class="filter-input" value="{{ end_date or '' }}" onchange="this.form.submit()">
+                    </div>
+                </div>
+                
+                <div class="filter-actions">
+                    <a href="/evaluations" class="btn btn-outline">Сбросить фильтры</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Список оцененных звонков -->
+        {% if evaluations %}
+            {% for evaluation in evaluations %}
+            <div class="evaluation-card" id="evaluation-{{ evaluation.id }}">
+                <div class="evaluation-header">
+                    <div class="evaluation-main-info">
+                        <div class="info-item">
+                            <span class="label">🎤 Аудитор:</span>
+                            <span class="value">{{ evaluation.evaluator.full_name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">📅 Прослушка:</span>
+                            <span class="value">{{ evaluation.evaluation_date.strftime('%d.%m.%Y') }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">📞 Звонок:</span>
+                            <span class="value">{{ evaluation.call_date.strftime('%d.%m.%Y') }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">👤 Оператор:</span>
+                            <span class="value">{{ evaluation.operator.full_name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">📁 Проект:</span>
+                            <span class="value">{{ evaluation.operator.project.name }}</span>
+                        </div>
+                        {% if evaluation.topic %}
+                        <div class="info-item">
+                            <span class="label">🎯 Тема:</span>
+                            <span class="value">{{ evaluation.topic.name }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Длительность звонка с возможностью редактирования в формате ММ:СС -->
+                        <div class="info-item duration-item" id="duration-item-{{ evaluation.id }}">
+                            <span class="label">⏱️ Длительность:</span>
+                            {% if user and (user.role == 'admin' or user.id == evaluation.evaluator_id) %}
+                                <div class="duration-display" id="duration-display-{{ evaluation.id }}">
+                                    {% if evaluation.call_duration %}
+                                        {% set minutes = (evaluation.call_duration // 60) %}
+                                        {% set seconds = (evaluation.call_duration % 60) %}
+                                        <span>{{ minutes }}:{{ '%02d' % seconds }}</span>
+                                    {% else %}
+                                        <span style="color: #6c757d;">—</span>
+                                    {% endif %}
+                                    <button class="duration-save-btn" onclick="startEditDuration({{ evaluation.id }})">
+                                        ✏️
+                                    </button>
+                                </div>
+                                <div class="duration-edit" id="duration-edit-{{ evaluation.id }}">
+                                    <input type="number" id="duration-minutes-{{ evaluation.id }}" class="duration-input" min="0" max="999" placeholder="ММ" value="{% if evaluation.call_duration %}{{ evaluation.call_duration // 60 }}{% endif %}">
+                                    <span style="font-weight: bold; color: #666;">:</span>
+                                    <input type="number" id="duration-seconds-{{ evaluation.id }}" class="duration-input" min="0" max="59" placeholder="СС" value="{% if evaluation.call_duration %}{{ '%02d' % (evaluation.call_duration % 60) }}{% endif %}">
+                                    <button class="duration-save-btn" onclick="saveDuration({{ evaluation.id }})">💾</button>
+                                    <button class="duration-save-btn" style="border-color: #6c757d; color: #6c757d;" onclick="cancelEditDuration({{ evaluation.id }})">✕</button>
+                                </div>
+                            {% else %}
+                                <span class="value">
+                                    {% if evaluation.call_duration %}
+                                        {% set minutes = (evaluation.call_duration // 60) %}
+                                        {% set seconds = (evaluation.call_duration % 60) %}
+                                        {{ minutes }}:{{ '%02d' % seconds }}
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="card-actions">
+                        <div class="total-quality">
+                            {{ evaluation.quality_percent|round|int }}%
+                        </div>
+                        {% if evaluation.call_link %}
+                        <a href="{{ evaluation.call_link }}" target="_blank" class="call-link" title="Ссылка на запись">
+                            🔗
+                        </a>
+                        {% endif %}
+                        {% if user and (user.role == 'admin' or user.id == evaluation.evaluator_id) %}
+                        <a href="/evaluate/{{ evaluation.operator.id }}/edit?evaluation_id={{ evaluation.id }}" class="edit-btn" title="Редактировать оценку">
+                            ✏️
+                        </a>
+                        <!-- Кнопка удаления -->
+                        <button class="delete-btn" onclick="showDeleteModal({{ evaluation.id }})" title="Удалить оценку">
+                            🗑️
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="evaluation-body">
+                    <!-- Блоки с метриками -->
+                    <div class="blocks-grid">
+                        {% for block_result in evaluation.block_results %}
+                        <div class="block-card">
+                            <div class="block-header">
+                                <span class="block-name">{{ block_result.block.name }}</span>
+                                <span class="block-percent">{{ block_result.percent|round|int }}%</span>
+                            </div>
+                            
+                            <div class="metrics-list">
+                                {% for metric in evaluation.metrics if metric.metric.block_id == block_result.block_id %}
+                                <div>
+                                    <div class="metric-row">
+                                        <span class="metric-name">{{ metric.metric.name }}</span>
+                                        <div class="metric-score 
+                                            {% if metric.is_not_evaluated %}text-muted
+                                            {% elif metric.earned_score == metric.max_score %}success
+                                            {% elif metric.earned_score == 0 and metric.metric.is_critical %}critical
+                                            {% elif metric.earned_score == 0 %}fail
+                                            {% endif %}">
+                                            {% if metric.is_not_evaluated %}
+                                                <span>Н/О</span>
+                                            {% else %}
+                                                <span>{{ metric.earned_score }}/{{ metric.max_score }}</span>
+                                                {% if metric.metric.is_critical and metric.earned_score == 0 %}
+                                                    <span style="margin-left: 4px;">⚠️</span>
+                                                {% endif %}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% if metric.comment %}
+                                    <div class="metric-comment">
+                                        💬 {{ metric.comment }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Информация о тикете и общий комментарий -->
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #edf0f5; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span style="color: #6c757d;">🎫 Тикет на проработку:</span>
+                            {% if evaluation.related_ticket %}
+                                <span class="ticket-badge 
+                                    {% if evaluation.related_ticket.status == 'new' %}new
+                                    {% elif evaluation.related_ticket.status == 'in_progress' %}progress
+                                    {% elif evaluation.related_ticket.status == 'completed' %}completed
+                                    {% else %}exists{% endif %}">
+                                    {% if evaluation.related_ticket.status == 'new' %}
+                                        🆕 Новый
+                                    {% elif evaluation.related_ticket.status == 'in_progress' %}
+                                        🔄 В работе
+                                    {% elif evaluation.related_ticket.status == 'completed' %}
+                                        ✅ Завершен
+                                    {% else %}
+                                        📋 Создан
+                                    {% endif %}
+                                </span>
+                                <a href="/tickets/{{ evaluation.related_ticket.id }}" style="color: #0066cc; font-size: 13px;">
+                                    Перейти →
+                                </a>
+                            {% else %}
+                                <span class="ticket-badge none">❌ Нет</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if evaluation.comment %}
+                        <div style="color: #6c757d; font-size: 13px; max-width: 400px; background: #f8f9fa; padding: 8px 12px; border-radius: 20px;">
+                            💬 {{ evaluation.comment }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <div>📞</div>
+            <h3>Нет оцененных звонков</h3>
+            <p style="margin-bottom: 20px;">Оцененные звонки появятся здесь после создания оценок</p>
+            <a href="/" style="text-decoration: none;">
+                <button class="btn btn-primary">
+                    <span>📋</span> Перейти к дашборду
+                </button>
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Таймер для модального окна выхода
+        let timerInterval;
+        
+        // ID оценки для удаления
+        let evaluationToDelete = null;
+
+        function showLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.add('active');
+            
+            let timeLeft = 5;
+            const timerElement = document.getElementById('timer');
+            
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    confirmLogout();
+                }
+            }, 1000);
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.remove('active');
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function confirmLogout() {
+            closeLogoutModal();
+            window.location.href = '/auth/logout';
+        }
+
+        // Функции для удаления оценки
+        function showDeleteModal(evaluationId) {
+            evaluationToDelete = evaluationId;
+            document.getElementById('deleteEvaluationModal').classList.add('active');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteEvaluationModal').classList.remove('active');
+            evaluationToDelete = null;
+        }
+
+        async function confirmDeleteEvaluation() {
+            if (!evaluationToDelete) return;
+            
+            try {
+                const response = await fetch(`/api/evaluations/${evaluationToDelete}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    // Удаляем карточку из DOM
+                    const evaluationCard = document.getElementById(`evaluation-${evaluationToDelete}`);
+                    if (evaluationCard) {
+                        evaluationCard.remove();
+                    }
+                    
+                    // Обновляем счетчик
+                    const counter = document.querySelector('.header-actions span');
+                    if (counter) {
+                        const currentText = counter.textContent;
+                        const match = currentText.match(/(\d+)/);
+                        if (match) {
+                            const currentCount = parseInt(match[0]);
+                            const newCount = currentCount - 1;
+                            const newText = currentText.replace(/\d+/, newCount);
+                            counter.textContent = newText;
+                        }
+                    }
+                    
+                    // Показываем уведомление об успехе
+                    showNotification('✅ Оценка успешно удалена', 'success');
+                } else {
+                    alert('❌ Ошибка: ' + (result.message || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                alert('❌ Ошибка сети');
+            } finally {
+                closeDeleteModal();
+            }
+        }
+
+        // Функция экспорта в Excel
+        function exportToExcel() {
+            const form = document.getElementById('filterForm');
+            const formData = new FormData(form);
+            
+            let url = '/api/evaluations/export?';
+            
+            for (let [key, value] of formData.entries()) {
+                if (value) {
+                    url += `${key}=${encodeURIComponent(value)}&`;
+                }
+            }
+            
+            url = url.slice(0, -1);
+            window.open(url, '_blank');
+        }
+
+        // Функция обновления данных с анимацией
+        function refreshData() {
+            const refreshBtn = event.currentTarget;
+            refreshBtn.classList.add('spinning');
+            
+            // Добавляем параметр для сброса кэша
+            const url = new URL(window.location.href);
+            url.searchParams.set('nocache', Date.now());
+            
+            // Перезагружаем страницу
+            window.location.href = url.toString();
+        }
+
+        // Функции для редактирования длительности в формате ММ:СС
+        function startEditDuration(evaluationId) {
+            document.getElementById(`duration-display-${evaluationId}`).style.display = 'none';
+            document.getElementById(`duration-edit-${evaluationId}`).style.display = 'flex';
+        }
+
+        function cancelEditDuration(evaluationId) {
+            document.getElementById(`duration-display-${evaluationId}`).style.display = 'flex';
+            document.getElementById(`duration-edit-${evaluationId}`).style.display = 'none';
+        }
+
+        function saveDuration(evaluationId) {
+            const minutesInput = document.getElementById(`duration-minutes-${evaluationId}`);
+            const secondsInput = document.getElementById(`duration-seconds-${evaluationId}`);
+            
+            const minutes = parseInt(minutesInput.value) || 0;
+            const seconds = parseInt(secondsInput.value) || 0;
+            
+            // Валидация
+            if (minutes < 0) {
+                alert('Минуты должны быть положительным числом');
+                return;
+            }
+            
+            if (seconds < 0 || seconds > 59) {
+                alert('Секунды должны быть от 0 до 59');
+                return;
+            }
+            
+            // Конвертируем в секунды для сохранения
+            const totalSeconds = (minutes * 60) + seconds;
+            
+            // Отправляем на сервер
+            fetch(`/api/evaluations/${evaluationId}/duration`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ duration: totalSeconds })
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Обновляем отображение
+                    const display = document.getElementById(`duration-display-${evaluationId}`);
+                    const mins = Math.floor(totalSeconds / 60);
+                    const secs = totalSeconds % 60;
+                    display.querySelector('span').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                    
+                    // Обновляем скрытые поля для следующего редактирования
+                    minutesInput.value = mins;
+                    secondsInput.value = secs.toString().padStart(2, '0');
+                    
+                    // Возвращаем режим отображения
+                    cancelEditDuration(evaluationId);
+                    
+                    // Показываем сообщение об успехе
+                    showNotification('Длительность сохранена', 'success');
+                } else {
+                    alert('Ошибка при сохранении длительности');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ошибка сети');
+            });
+        }
+
+        // Функция для показа уведомлений
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 24px;
+                background: ${type === 'success' ? '#28a745' : '#007bff'};
+                color: white;
+                border-radius: 30px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 9999;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Добавляем стили для анимации уведомлений
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Закрытие модальных окон по клику на overlay
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    if (this.id === 'logoutModal' && timerInterval) {
+                        clearInterval(timerInterval);
+                    }
+                    if (this.id === 'deleteEvaluationModal') {
+                        evaluationToDelete = null;
+                    }
+                }
+            });
+        });
+
+        // Закрытие по ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                    if (modal.id === 'logoutModal' && timerInterval) {
+                        clearInterval(timerInterval);
+                    }
+                    if (modal.id === 'deleteEvaluationModal') {
+                        evaluationToDelete = null;
+                    }
+                });
+            }
+        });
+
+        // Обработка чекбокса "Запомнить меня"
+        document.getElementById('saveSession')?.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                console.log('Сессия будет сохранена');
+            }
+        });
+
+        // Автоматическое обновление при возврате на страницу
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                const lastRefresh = sessionStorage.getItem('lastRefresh');
+                const now = Date.now();
+                
+                if (lastRefresh && (now - parseInt(lastRefresh)) < 5000) {
+                    return;
+                }
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                if (!urlParams.has('nocache')) {
+                    urlParams.set('nocache', now);
+                    window.location.search = urlParams.toString();
+                }
+                
+                sessionStorage.setItem('lastRefresh', now.toString());
+            }
+        });
+
+        // Валидация полей секунд (не больше 59)
+        document.querySelectorAll('[id^="duration-seconds-"]').forEach(input => {
+            input.addEventListener('change', function() {
+                let value = parseInt(this.value);
+                if (value > 59) this.value = 59;
+                if (value < 0) this.value = 0;
+            });
+        });
+    </script>
+</body>
+</html>

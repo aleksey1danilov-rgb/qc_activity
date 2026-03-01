@@ -1,0 +1,1321 @@
+<!-- templates/edit_evaluation.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Редактирование оценки | {{ operator.full_name }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            padding: 24px 32px;
+        }
+
+        .top-nav {
+            background: white;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .project-badge {
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            color: #5a5e6a;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            text-decoration: none;
+            color: #5a5e6a;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            color: #0066cc;
+        }
+
+        .nav-item.active {
+            color: #0066cc;
+            font-weight: 500;
+            position: relative;
+        }
+
+        .nav-item.active:after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0066cc;
+        }
+
+        .tickets-badge {
+            background: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .user-rating {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: white;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #dc3545;
+            color: #dc3545;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logout-btn:hover {
+            background: #dc3545;
+            color: white;
+        }
+
+        .projects-strip {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .project-tag {
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: default;
+            text-decoration: none;
+        }
+
+        .project-tag.add {
+            background: #0066cc;
+            color: white;
+            cursor: pointer;
+        }
+
+        .project-tag.all {
+            background: #ffffff;
+            color: #2c3e50;
+            border: 1px solid #d0d7de;
+            cursor: pointer;
+        }
+
+        .evaluate-container {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+        }
+
+        .evaluate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .evaluate-header h1 {
+            font-size: 24px;
+            color: #0a1e3c;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .operator-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .operator-info h2 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .operator-info p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .call-info {
+            background: rgba(255,255,255,0.2);
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .block-card {
+            background: #f8faff;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 2px solid #e0e7ff;
+            transition: all 0.3s;
+        }
+
+        .block-card.block-reset {
+            background: #fff5f5;
+            border-color: #fc8181;
+        }
+
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .block-header h3 {
+            font-size: 20px;
+            color: #0a1e3c;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .block-reset-badge {
+            background: #fc8181;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .block-reset .block-reset-badge {
+            display: inline-block;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .metric-item {
+            background: white;
+            border: 2px solid #edf0f5;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .metric-item.resets-block {
+            border-left: 4px solid #fc8181;
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .metric-name {
+            font-weight: 600;
+            color: #0a1e3c;
+        }
+
+        .metric-badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 30px;
+            background: #e8eaf6;
+            color: #1a237e;
+        }
+
+        .metric-badge.critical {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .metric-description {
+            font-size: 13px;
+            color: #6c757d;
+            margin-bottom: 16px;
+        }
+
+        .evaluation-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-yes, .btn-no {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-yes {
+            background: #e3fcef;
+            color: #0e6245;
+            border: 2px solid #c6f6d5;
+        }
+
+        .btn-yes:hover, .btn-yes.selected {
+            background: #38a169;
+            color: white;
+            border-color: #38a169;
+        }
+
+        .btn-no {
+            background: #fff5f5;
+            color: #9b2c2c;
+            border: 2px solid #fed7d7;
+        }
+
+        .btn-no:hover, .btn-no.selected {
+            background: #e53e3e;
+            color: white;
+            border-color: #e53e3e;
+        }
+
+        .btn-no.resets-block {
+            border-color: #fc8181;
+            background: #fff5f5;
+        }
+
+        .metric-comment {
+            margin-top: 12px;
+            display: none;
+        }
+
+        .metric-comment.active {
+            display: block;
+        }
+
+        .metric-comment textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #edf0f5;
+            border-radius: 8px;
+            font-size: 13px;
+            resize: vertical;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #0b1f3a;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #edf0f5;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .topic-section {
+            background: #f0f7ff;
+            border: 2px solid #0066cc;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .topic-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .topic-header h3 {
+            font-size: 18px;
+            color: #0066cc;
+        }
+
+        .dates-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .block-percent {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e3a8a;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .back-link:hover {
+            color: #0066cc;
+        }
+
+        .evaluation-date {
+            font-size: 14px;
+            color: #1e3a8a;
+            margin-bottom: 8px;
+            padding: 4px 8px;
+            background: #eef2ff;
+            border-radius: 30px;
+            display: inline-block;
+        }
+
+        .score-preview {
+            background: #f8faff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .score-item {
+            flex: 1;
+            min-width: 150px;
+            margin: 8px;
+        }
+
+        .score-label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 4px;
+        }
+
+        .score-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0a1e3c;
+        }
+
+        .score-value.total {
+            color: #805ad5;
+        }
+
+        .submit-section {
+            margin-top: 32px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+        }
+
+        .btn {
+            padding: 12px 32px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #0066cc;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #0052a3;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,102,204,0.2);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #d0d7de;
+            color: #2c3e50;
+        }
+
+        .btn-outline:hover {
+            background: #f8f9fa;
+        }
+
+        /* Стили для модального окна */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+            overflow: hidden;
+        }
+
+        .modal-confirm {
+            border-top: 4px solid #dc3545;
+        }
+
+        .modal-header {
+            padding: 24px 24px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-icon.confirm {
+            background: #fee;
+            color: #dc3545;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #0a1e3c;
+        }
+
+        .modal-subtitle {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .modal-content {
+            padding: 0 24px 24px;
+        }
+
+        .modal-text {
+            color: #2c3e50;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            text-align: center;
+        }
+
+        .modal-btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .modal-btn-danger:hover {
+            background: #c82333;
+        }
+
+        .modal-btn-secondary {
+            background: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #d0d7de;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .modal-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        .modal-timer {
+            text-align: center;
+            color: #6c757d;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+
+        .modal-progress {
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            margin-top: 16px;
+            overflow: hidden;
+        }
+
+        .modal-progress-bar {
+            height: 100%;
+            width: 100%;
+            background: #0066cc;
+            animation: progress 3s linear;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        .hidden-data {
+            display: none;
+        }
+
+        @media (max-width: 1200px) {
+            .nav-links {
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .nav-links {
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+            .top-nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .nav-links {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+            .nav-item.active:after {
+                bottom: -5px;
+            }
+            .user-rating {
+                margin-left: 0;
+                width: 100%;
+                justify-content: space-between;
+            }
+            .operator-info {
+                flex-direction: column;
+                gap: 16px;
+            }
+            .dates-section {
+                grid-template-columns: 1fr;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            .submit-section {
+                flex-direction: column;
+            }
+            .submit-section .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Модальное окно подтверждения выхода -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal modal-confirm">
+            <div class="modal-header">
+                <div class="modal-icon confirm">
+                    ⚠️
+                </div>
+                <div>
+                    <div class="modal-title">Выход из профиля</div>
+                    <div class="modal-subtitle">Подтверждение действия</div>
+                </div>
+            </div>
+            <div class="modal-content">
+                <div class="modal-text">
+                    Вы действительно хотите выйти из системы? Все несохраненные данные будут потеряны.
+                </div>
+                
+                <div class="modal-checkbox">
+                    <input type="checkbox" id="saveSession">
+                    <label for="saveSession">Запомнить меня на этом устройстве</label>
+                </div>
+
+                <div class="modal-buttons">
+                    <button class="modal-btn modal-btn-secondary" onclick="closeLogoutModal()">
+                        Отмена
+                    </button>
+                    <button class="modal-btn modal-btn-danger" onclick="confirmLogout()">
+                        Выйти
+                    </button>
+                </div>
+
+                <div class="modal-timer">
+                    Окно закроется через <span id="timer">5</span> сек
+                </div>
+                <div class="modal-progress">
+                    <div class="modal-progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="top-nav">
+        <div class="project-badge">Оценка звонков • Редактирование</div>
+        <div class="nav-links">
+            <a href="/" class="nav-item {% if request.url.path == '/' %}active{% endif %}">Дашборд</a>
+            <a href="/operators" class="nav-item {% if request.url.path == '/operators' %}active{% endif %}">Операторы</a>
+            <a href="/projects" class="nav-item {% if request.url.path == '/projects' %}active{% endif %}">Проекты</a>
+            <a href="/evaluations" class="nav-item {% if request.url.path == '/evaluations' %}active{% endif %}">Оцененные звонки</a>
+            <a href="/reports" class="nav-item {% if request.url.path == '/reports' %}active{% endif %}">Отчеты</a>
+            <a href="/tickets" class="nav-item {% if request.url.path == '/tickets' %}active{% endif %}">
+                Тикеты на проработку
+                <span class="tickets-badge">{{ tickets_count|default(0) }}</span>
+            </a>
+            <a href="/auth/profile" class="nav-item {% if request.url.path == '/auth/profile' %}active{% endif %}">Профиль</a>
+            {% if user and user.role == 'admin' %}
+            <a href="/admin" class="nav-item {% if request.url.path == '/admin' %}active{% endif %}">Админ</a>
+            {% endif %}
+        </div>
+        <div class="user-rating">
+            <div class="user-info">
+                <div class="user-avatar">
+                    {% if user and user.avatar_letters %}
+                        {{ user.avatar_letters }}
+                    {% elif user and user.full_name %}
+                        {{ user.full_name[:2]|upper }}
+                    {% else %}
+                        АД
+                    {% endif %}
+                </div>
+                <span style="font-size: 14px; font-weight: 500;">
+                    {% if user and user.full_name %}
+                        {{ user.full_name.split()[0] }}
+                    {% else %}
+                        Админ
+                    {% endif %}
+                </span>
+            </div>
+            <button class="logout-btn" type="button" onclick="showLogoutModal()">
+                🚪 Выйти
+            </button>
+        </div>
+    </div>
+
+    <!-- Проекты -->
+    <div class="projects-strip">
+        {% for project in projects %}
+            <a href="/project/{{ project.id }}" class="project-tag" style="background: #f0f3fa;">
+                📁 {{ project.name }}
+            </a>
+        {% else %}
+            <span class="project-tag" style="background: #f0f3fa;">📁 Нет проектов</span>
+        {% endfor %}
+        
+        {% if user and user.role in ['admin', 'controller'] %}
+        <span class="project-tag add" onclick="window.location.href='/projects'">➕ Добавить проект</span>
+        {% endif %}
+        
+        <span class="project-tag all" onclick="window.location.href='/projects'">
+            📋 Все проекты ({{ projects|length }})
+        </span>
+    </div>
+
+    <div class="evaluate-container">
+        <!-- Данные для JavaScript -->
+        <div id="evaluationData" 
+             data-operator-id="{{ operator.id }}" 
+             data-evaluation-id="{{ evaluation.id }}"
+             data-project-id="{{ operator.project_id }}" 
+             style="display: none;">
+        </div>
+        
+        <a href="/operator/{{ operator.id }}" class="back-link">
+            ← Назад к профилю оператора
+        </a>
+
+        <div class="evaluate-header">
+            <h1>
+                <span>✏️</span> 
+                Редактирование оценки: {{ operator.full_name }}
+            </h1>
+            <div class="evaluation-date" id="evaluationDateDisplay"></div>
+        </div>
+
+        <div class="operator-info">
+            <div>
+                <h2>{{ operator.full_name }}</h2>
+                <p>Проект: {{ operator.project.name }}</p>
+                <p>Стаж: {{ operator.experience_days }} дней</p>
+            </div>
+            <div class="call-info">
+                <div class="dates-section">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="color: white;">📅 Дата звонка</label>
+                        <input type="date" id="callDate" value="{{ evaluation.call_date.strftime('%Y-%m-%d') }}" style="background: white; color: black;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="color: white;">📅 Дата оценки</label>
+                        <input type="date" id="evaluationDate" value="{{ evaluation.evaluation_date.strftime('%Y-%m-%d') }}" style="background: white; color: black;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>🔗 Ссылка на запись звонка</label>
+            <input type="url" id="callLink" value="{{ evaluation.call_link or '' }}" placeholder="https://...">
+        </div>
+
+        <!-- Выбор темы звонка -->
+        <div class="topic-section">
+            <div class="topic-header">
+                <span style="font-size: 24px;">🎯</span>
+                <h3>Тема звонка</h3>
+            </div>
+            
+            <div class="form-group">
+                <label>Выберите тему из списка</label>
+                <select id="topicSelect" class="topic-select">
+                    <option value="">— Без темы —</option>
+                    {% for topic in topics %}
+                    <option value="{{ topic.id }}" {% if evaluation.topic_id == topic.id %}selected{% endif %}>
+                        {{ topic.name }}{% if topic.description %} ({{ topic.description }}){% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Блоки с метриками -->
+        <div id="blocksContainer">
+            {% for block in blocks %}
+            <div class="block-card" id="block-{{ block.id }}" data-block-id="{{ block.id }}" data-block-name="{{ block.name }}">
+                <div class="block-header">
+                    <h3>
+                        {{ block.name }}
+                        <span class="block-reset-badge">❌ Блок обнулен</span>
+                    </h3>
+                    <span class="block-percent" id="block-percent-{{ block.id }}">0%</span>
+                </div>
+
+                <div class="metrics-grid">
+                    {% for metric in metrics if metric.block_id == block.id %}
+                    {% set metric_value = metric_values.get(metric.id, {}) %}
+                    <div class="metric-item" 
+                         id="metric-{{ metric.id }}" 
+                         data-metric-id="{{ metric.id }}"
+                         data-block-id="{{ block.id }}"
+                         data-max-score="{{ metric.max_score }}"
+                         data-resets-block="{{ 'true' if metric.resets_block else 'false' }}"
+                         data-is-critical="{{ 'true' if metric.is_critical else 'false' }}"
+                         data-penalty-type="{{ metric.penalty_type or '' }}"
+                         data-penalty-value="{{ metric.penalty_value or 0 }}">
+                        
+                        <div class="metric-header">
+                            <span class="metric-name">{{ metric.name }}</span>
+                            <div>
+                                <span class="metric-badge {% if metric.is_critical %}critical{% endif %}">
+                                    max {{ metric.max_score }}
+                                </span>
+                                {% if metric.resets_block %}
+                                <span class="metric-badge" style="background: #fff3e0; color: #ef6c00;">
+                                    обнуляет блок
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if metric.description %}
+                        <div class="metric-description">
+                            {{ metric.description }}
+                        </div>
+                        {% endif %}
+
+                        <div class="evaluation-buttons">
+                            <button type="button" class="btn-yes {% if metric_value.get('earned_score') == metric.max_score %}selected{% endif %}" onclick="window.setMetricValue({{ metric.id }}, true)">✅ Да</button>
+                            <button type="button" class="btn-no {% if metric.resets_block %}resets-block{% endif %} {% if metric_value.get('earned_score') == 0 %}selected{% endif %}" onclick="window.setMetricValue({{ metric.id }}, false)">❌ Нет</button>
+                        </div>
+
+                        <!-- Поле для комментария при ответе "Нет" -->
+                        <div class="metric-comment {% if metric_value.get('earned_score') == 0 %}active{% endif %}" id="comment-{{ metric.id }}">
+                            <textarea placeholder="Причина невыполнения..." rows="2">{{ metric_value.get('comment', '') }}</textarea>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label>📝 Общий комментарий к оценке</label>
+            <textarea id="comment" rows="3" placeholder="Дополнительные заметки по звонку...">{{ evaluation.comment or '' }}</textarea>
+        </div>
+
+        <!-- Предварительный просмотр результатов -->
+        <div class="score-preview" id="scorePreview"></div>
+
+        <div class="submit-section">
+            <button type="button" class="btn btn-outline" onclick="window.cancelEvaluation()">Отмена</button>
+            <button type="button" class="btn btn-primary" id="submitBtn" onclick="window.updateEvaluation()">Сохранить изменения</button>
+        </div>
+    </div>
+
+    <script>
+        // Таймер для модального окна выхода
+        let timerInterval;
+
+        function showLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.add('active');
+            
+            let timeLeft = 5;
+            const timerElement = document.getElementById('timer');
+            
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    confirmLogout();
+                }
+            }, 1000);
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.remove('active');
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function confirmLogout() {
+            closeLogoutModal();
+            window.location.href = '/auth/logout';
+        }
+
+        // Закрытие по клику на overlay
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    if (this.id === 'logoutModal' && timerInterval) {
+                        clearInterval(timerInterval);
+                    }
+                }
+            });
+        });
+
+        // Закрытие по ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                    if (modal.id === 'logoutModal' && timerInterval) {
+                        clearInterval(timerInterval);
+                    }
+                });
+            }
+        });
+
+        // Обработка чекбокса "Запомнить меня"
+        document.getElementById('saveSession')?.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                console.log('Сессия будет сохранена');
+            }
+        });
+
+        // Основная логика редактирования
+        (function() {
+            const evaluationData = document.getElementById('evaluationData');
+            const operatorId = parseInt(evaluationData.dataset.operatorId);
+            const evaluationId = parseInt(evaluationData.dataset.evaluationId);
+            const projectId = parseInt(evaluationData.dataset.projectId);
+            
+            // Устанавливаем текущую дату
+            const today = new Date();
+            const formattedDate = today.toLocaleDateString('ru-RU', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('evaluationDateDisplay').textContent = formattedDate;
+
+            // Хранилище значений
+            let metricValues = {};
+            let metricComments = {};
+            let blockResetStatus = {};
+
+            // Инициализация с существующими значениями
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.metric-item').forEach(item => {
+                    const metricId = parseInt(item.dataset.metricId);
+                    const isYesSelected = item.querySelector('.btn-yes.selected');
+                    const commentField = document.getElementById(`comment-${metricId}`);
+                    
+                    if (isYesSelected) {
+                        metricValues[metricId] = parseInt(item.dataset.maxScore);
+                    } else {
+                        metricValues[metricId] = 0;
+                    }
+                    
+                    metricComments[metricId] = commentField ? commentField.querySelector('textarea').value : '';
+                });
+
+                document.querySelectorAll('.block-card').forEach(block => {
+                    const blockId = parseInt(block.dataset.blockId);
+                    blockResetStatus[blockId] = false;
+                });
+
+                updateAllPreviews();
+            });
+
+            window.setMetricValue = function(metricId, isYes) {
+                const metricItem = document.getElementById(`metric-${metricId}`);
+                if (!metricItem) return;
+
+                const blockId = parseInt(metricItem.dataset.blockId);
+                const maxScore = parseInt(metricItem.dataset.maxScore);
+                const resetsBlock = metricItem.dataset.resetsBlock === 'true';
+                
+                const yesBtn = metricItem.querySelector('.btn-yes');
+                const noBtn = metricItem.querySelector('.btn-no');
+                const commentField = document.getElementById(`comment-${metricId}`);
+                
+                yesBtn.classList.remove('selected');
+                noBtn.classList.remove('selected');
+                
+                if (isYes) {
+                    yesBtn.classList.add('selected');
+                    metricValues[metricId] = maxScore;
+                    if (commentField) {
+                        commentField.classList.remove('active');
+                    }
+                } else {
+                    noBtn.classList.add('selected');
+                    metricValues[metricId] = 0;
+                    if (commentField) {
+                        commentField.classList.add('active');
+                    }
+                }
+
+                updateBlockResetStatus(blockId);
+                updateAllPreviews();
+            };
+
+            function updateBlockResetStatus(blockId) {
+                const blockMetrics = document.querySelectorAll(`.metric-item[data-block-id="${blockId}"]`);
+                let hasResettingNo = false;
+                
+                blockMetrics.forEach(metric => {
+                    const mId = parseInt(metric.dataset.metricId);
+                    const mResetsBlock = metric.dataset.resetsBlock === 'true';
+                    if (mResetsBlock && metricValues[mId] === 0) {
+                        hasResettingNo = true;
+                    }
+                });
+                
+                blockResetStatus[blockId] = hasResettingNo;
+                
+                const blockCard = document.getElementById(`block-${blockId}`);
+                if (blockCard) {
+                    if (hasResettingNo) {
+                        blockCard.classList.add('block-reset');
+                    } else {
+                        blockCard.classList.remove('block-reset');
+                    }
+                }
+            }
+
+            function updateAllPreviews() {
+                document.querySelectorAll('.block-card').forEach(blockCard => {
+                    const blockId = parseInt(blockCard.dataset.blockId);
+                    const isReset = blockResetStatus[blockId] || false;
+                    
+                    let blockEarned = 0;
+                    let blockMax = 0;
+
+                    const metrics = document.querySelectorAll(`.metric-item[data-block-id="${blockId}"]`);
+                    metrics.forEach(metric => {
+                        const metricId = parseInt(metric.dataset.metricId);
+                        const maxScore = parseInt(metric.dataset.maxScore);
+                        
+                        blockMax += maxScore;
+                        
+                        if (isReset) {
+                            blockEarned += 0;
+                        } else {
+                            const value = metricValues[metricId];
+                            blockEarned += value !== null ? value : 0;
+                        }
+                    });
+
+                    const blockPercent = blockMax > 0 ? Math.round((blockEarned / blockMax) * 100) : 0;
+                    document.getElementById(`block-percent-${blockId}`).textContent = blockPercent + '%';
+                });
+
+                updateScorePreview();
+            }
+
+            function updateScorePreview() {
+                const preview = document.getElementById('scorePreview');
+                preview.innerHTML = '';
+
+                const blocks = [];
+                document.querySelectorAll('.block-card').forEach(blockCard => {
+                    const blockId = parseInt(blockCard.dataset.blockId);
+                    const blockName = blockCard.dataset.blockName;
+                    const percentEl = document.getElementById(`block-percent-${blockId}`);
+                    
+                    blocks.push({
+                        name: blockName,
+                        percent: percentEl ? percentEl.textContent : '0%'
+                    });
+                });
+
+                blocks.forEach(block => {
+                    const item = document.createElement('div');
+                    item.className = 'score-item';
+                    item.innerHTML = `
+                        <div class="score-label">${block.name}</div>
+                        <div class="score-value">${block.percent}</div>
+                    `;
+                    preview.appendChild(item);
+                });
+
+                let totalPercent = 0;
+                if (blocks.length > 0) {
+                    const sum = blocks.reduce((acc, block) => {
+                        return acc + parseInt(block.percent);
+                    }, 0);
+                    totalPercent = Math.round(sum / blocks.length);
+                }
+
+                const totalItem = document.createElement('div');
+                totalItem.className = 'score-item';
+                totalItem.innerHTML = `
+                    <div class="score-label">Общая оценка</div>
+                    <div class="score-value total">${totalPercent}%</div>
+                `;
+                preview.appendChild(totalItem);
+            }
+
+            window.updateEvaluation = async function() {
+                const callDate = document.getElementById('callDate').value;
+                const evaluationDate = document.getElementById('evaluationDate').value;
+                const callLink = document.getElementById('callLink').value;
+                const comment = document.getElementById('comment').value;
+                
+                const topicSelect = document.getElementById('topicSelect');
+                const topicId = topicSelect ? topicSelect.value : null;
+
+                const allMetrics = document.querySelectorAll('.metric-item');
+                let allEvaluated = true;
+                let metricsData = [];
+
+                allMetrics.forEach(metric => {
+                    const metricId = parseInt(metric.dataset.metricId);
+                    const value = metricValues[metricId];
+                    const commentField = document.getElementById(`comment-${metricId}`);
+                    const commentText = commentField ? commentField.querySelector('textarea').value : '';
+                    
+                    if (value === null) {
+                        allEvaluated = false;
+                    } else {
+                        metricsData.push({
+                            metric_id: metricId,
+                            earned_score: value,
+                            is_not_evaluated: false,
+                            comment: commentText
+                        });
+                    }
+                });
+
+                if (!allEvaluated) {
+                    if (!confirm('Не все метрики оценены. Продолжить?')) {
+                        return;
+                    }
+                }
+
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Сохранение...';
+
+                try {
+                    const response = await fetch('/api/evaluation/update', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            evaluation_id: evaluationId,
+                            operator_id: operatorId,
+                            call_date: callDate,
+                            evaluation_date: evaluationDate,
+                            call_link: callLink,
+                            comment: comment,
+                            topic_id: topicId ? parseInt(topicId) : null,
+                            metrics: metricsData
+                        })
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        alert(`✅ ${result.message}`);
+                        window.location.href = `/operator/${operatorId}`;
+                    } else {
+                        const error = await response.json();
+                        alert('❌ Ошибка: ' + (error.detail || 'Неизвестная ошибка'));
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Сохранить изменения';
+                    }
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                    alert('❌ Ошибка сети');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Сохранить изменения';
+                }
+            };
+
+            window.cancelEvaluation = function() {
+                if (confirm('Отменить редактирование? Все изменения будут потеряны.')) {
+                    window.location.href = `/operator/${operatorId}`;
+                }
+            };
+        })();
+    </script>
+</body>
+</html>
