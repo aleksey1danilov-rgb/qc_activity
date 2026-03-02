@@ -1078,7 +1078,8 @@
                 try {
                     let response;
                     if (isEditing) {
-                        response = await fetch(`/api/projects/${PROJECT_ID}/blocks/${blockId}`, {
+                        // ИСПРАВЛЕНО: правильный URL для обновления блока
+                        response = await fetch(`/api/blocks/${blockId}`, {
                             method: 'PUT',
                             headers: {'Content-Type': 'application/json'},
                             body: JSON.stringify(data)
@@ -1171,6 +1172,8 @@
             async function deleteItem() {
                 if (!currentItemId || !currentItemType) return;
                 
+                console.log('Удаляем:', currentItemType, 'ID:', currentItemId);
+                
                 try {
                     let url = '';
                     if (currentItemType === 'block') {
@@ -1178,20 +1181,32 @@
                     } else {
                         url = `/api/metrics/${currentItemId}`;
                     }
+                    
+                    console.log('URL запроса:', url);
+                    console.log('Метод: DELETE');
 
                     const response = await fetch(url, {
                         method: 'DELETE'
                     });
-
+                    
+                    console.log('Статус ответа:', response.status);
+                    
                     if (response.ok) {
+                        console.log('Успешно удалено');
                         closeDeleteModal();
-                        location.reload();
+                        
+                        // ИСПРАВЛЕНИЕ: принудительная перезагрузка с очисткой кэша
+                        // Добавляем случайный параметр, чтобы браузер не использовал кэш
+                        const currentUrl = new URL(window.location.href);
+                        currentUrl.searchParams.set('t', Date.now());
+                        window.location.href = currentUrl.toString();
                     } else {
                         const error = await response.json();
-                        alert('❌ ' + (error.detail || 'Ошибка удаления'));
+                        console.error('Ошибка ответа:', error);
+                        alert('❌ ' + (error.detail || error.message || 'Ошибка удаления'));
                     }
                 } catch (error) {
-                    console.error('Ошибка:', error);
+                    console.error('Ошибка сети:', error);
                     alert('❌ Ошибка сети');
                 }
             }

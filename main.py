@@ -3413,6 +3413,70 @@ async def get_block_metrics(
     
     return JSONResponse(result)
 
+@app.put("/api/blocks/{block_id}")
+async def update_block(
+    block_id: int,
+    request: Request,
+    current_user: User = Depends(require_role(['admin', 'controller'])),
+    db: Session = Depends(get_db)
+):
+    """Обновление блока метрик"""
+    block = db.query(MetricBlock).filter(MetricBlock.id == block_id).first()
+    if not block:
+        raise HTTPException(status_code=404, detail="Блок не найден")
+    
+    data = await request.json()
+    
+    # Обновляем поля
+    if "name" in data:
+        block.name = data["name"]
+    if "description" in data:
+        block.description = data["description"]
+    
+    db.commit()
+    
+    return JSONResponse({
+        "status": "success",
+        "block": {
+            "id": block.id,
+            "name": block.name,
+            "description": block.description,
+            "display_order": block.display_order
+        }
+    })
+
+
+
+@app.delete("/api/blocks/{block_id}")
+async def delete_block(
+    block_id: int,
+    current_user: User = Depends(require_role(['admin', 'controller'])),
+    db: Session = Depends(get_db)
+):
+    """Удаление блока метрик"""
+    block = db.query(MetricBlock).filter(MetricBlock.id == block_id).first()
+    if not block:
+        raise HTTPException(status_code=404, detail="Блок не найден")
+    
+    # Проверяем, есть ли метрики в этом блоке
+    metrics_count = db.query(Metric).filter(Metric.block_id == block_id).count()
+    if metrics_count > 0:
+        # Если есть метрики, просто деактивируем блок
+        block.is_active = False
+        db.commit()
+        return JSONResponse({
+            "status": "success",
+            "message": f"Блок деактивирован, так как содержит {metrics_count} метрик"
+        })
+    else:
+        # Если нет метрик, удаляем полностью
+        db.delete(block)
+        db.commit()
+        return JSONResponse({
+            "status": "success",
+            "message": "Блок удален"
+        })
+
 # ============== ПОЛЬЗОВАТЕЛИ И ПРОФИЛЬ ==============
 
 @app.get("/profile", response_class=HTMLResponse)
