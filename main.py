@@ -17,6 +17,8 @@ from io import BytesIO
 from dotenv import load_dotenv
 load_dotenv()
 
+from sqlalchemy import inspect, text
+
 # Для экспорта в Excel
 try:
     import pandas as pd
@@ -112,14 +114,78 @@ def save_virtual_workbook(workbook):
 
 @app.on_event("startup")
 def startup_event():
-    """Создание таблиц при запуске"""
-    init_db()
+    """Создание таблиц и проверка структуры БД при запуске"""
+    print("\n" + "="*60)
+    print("🚀 ЗАПУСК ПРИЛОЖЕНИЯ")
+    print("="*60)
     
-    # Создаем админа по умолчанию если нет пользователей
+    # Создаем таблицы, если их нет
+    init_db()
+    print("✅ Таблицы созданы/проверены")
+    
+    # ============== МИГРАЦИЯ ТАБЛИЦЫ METRICS ==============
+    print("\n📦 ПРОВЕРКА СТРУКТУРЫ ТАБЛИЦЫ METRICS:")
+    try:
+        from database import SessionLocal
+        from sqlalchemy import inspect, text
+        
+        db = SessionLocal()
+        
+        # Определяем тип базы данных
+        db_url = str(db.bind.url)
+        is_postgresql = 'postgresql' in db_url
+        
+        if is_postgresql:
+            print("   📊 Тип БД: PostgreSQL")
+        else:
+            print("   📊 Тип БД: SQLite")
+        
+        # Проверяем существующие колонки в таблице metrics
+        inspector = inspect(db.bind)
+        columns = [col['name'] for col in inspector.get_columns('metrics')]
+        print(f"   📋 Существующие колонки: {', '.join(columns)}")
+        
+        # Добавляем is_global_critical, если нет
+        if 'is_global_critical' not in columns:
+            print("   ➕ Добавляем колонку is_global_critical...")
+            if is_postgresql:
+                db.execute(text("ALTER TABLE metrics ADD COLUMN is_global_critical BOOLEAN DEFAULT FALSE"))
+            else:
+                db.execute(text("ALTER TABLE metrics ADD COLUMN is_global_critical BOOLEAN DEFAULT 0"))
+            db.commit()
+            print("   ✅ Колонка is_global_critical добавлена")
+        else:
+            print("   ✅ Колонка is_global_critical уже существует")
+        
+        # Добавляем allow_na, если нет
+        if 'allow_na' not in columns:
+            print("   ➕ Добавляем колонку allow_na...")
+            if is_postgresql:
+                db.execute(text("ALTER TABLE metrics ADD COLUMN allow_na BOOLEAN DEFAULT TRUE"))
+            else:
+                db.execute(text("ALTER TABLE metrics ADD COLUMN allow_na BOOLEAN DEFAULT 1"))
+            db.commit()
+            print("   ✅ Колонка allow_na добавлена")
+        else:
+            print("   ✅ Колонка allow_na уже существует")
+        
+        db.close()
+        print("✅ Миграция таблицы metrics завершена")
+        
+    except Exception as e:
+        print(f"⚠️ Ошибка при миграции metrics: {e}")
+        import traceback
+        traceback.print_exc()
+    # ======================================================
+    
+    # ============== СОЗДАНИЕ ПОЛЬЗОВАТЕЛЕЙ ==============
+    print("\n👤 ПРОВЕРКА ПОЛЬЗОВАТЕЛЕЙ:")
     from database import SessionLocal, User
     from auth import hash_password
     
     db = SessionLocal()
+    
+    # Создаем админа по умолчанию если нет пользователей
     if db.query(User).count() == 0:
         admin = User(
             full_name="Администратор",
@@ -131,7 +197,9 @@ def startup_event():
         )
         db.add(admin)
         db.commit()
-        print("✅ Создан пользователь admin / admin123")
+        print("   ✅ Создан пользователь admin / admin123")
+    else:
+        print("   ✅ Пользователи уже существуют")
     
     # Создаем тестового контролера Яну
     if db.query(User).filter(User.login == "yana.control").count() == 0:
@@ -145,7 +213,7 @@ def startup_event():
         )
         db.add(yana)
         db.commit()
-        print("✅ Создан пользователь yana.control / yana123")
+        print("   ✅ Создан пользователь yana.control / yana123")
     
     # Создаем тестового менеджера
     if db.query(User).filter(User.login == "manager").count() == 0:
@@ -159,10 +227,14 @@ def startup_event():
         )
         db.add(manager)
         db.commit()
-        print("✅ Создан пользователь manager / manager123")
+        print("   ✅ Создан пользователь manager / manager123")
     
     db.close()
-    print("✅ База данных готова")
+    # ======================================================
+    
+    print("\n" + "="*60)
+    print("✅ БАЗА ДАННЫХ ГОТОВА К РАБОТЕ")
+    print("="*60 + "\n")
 
 # ============== ГЛАВНЫЙ ДАШБОРД ==============
 
