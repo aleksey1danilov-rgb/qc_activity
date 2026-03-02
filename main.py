@@ -14,6 +14,9 @@ import hmac
 import json
 from io import BytesIO
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Для экспорта в Excel
 try:
     import pandas as pd
@@ -2452,10 +2455,8 @@ async def add_metric(
     """Добавление новой метрики"""
     data = await request.json()
     
-    # Получаем или создаем блок
     block_id = data.get("block_id")
     if not block_id:
-        # Берем первый активный блок проекта
         block = db.query(MetricBlock).filter(
             MetricBlock.project_id == project_id,
             MetricBlock.is_active == True
@@ -2468,14 +2469,12 @@ async def add_metric(
         Metric.block_id == block_id
     ).scalar() or 0
     
-    # Получаем max_score, преобразуем в int
     max_score = data.get("max_score", 1)
     try:
         max_score = int(max_score)
     except (ValueError, TypeError):
         max_score = 1
     
-    # Валидация: разрешенные значения
     allowed_scores = [0, 1, 2, 3, 5, 10]
     if max_score not in allowed_scores:
         raise HTTPException(
@@ -2489,8 +2488,10 @@ async def add_metric(
         description=data.get("description", ""),
         max_score=max_score,
         is_critical=data.get("is_critical", False),
-        penalty_type=data.get("penalty_type"),
-        penalty_value=data.get("penalty_value"),
+        is_global_critical=data.get("is_global_critical", False),
+        allow_na=data.get("allow_na", True),
+        penalty_type=data.get("penalty_type") if data.get("is_critical") else None,
+        penalty_value=data.get("penalty_value") if data.get("is_critical") else None,
         resets_block=data.get("resets_block", False),
         display_order=max_order + 1
     )
@@ -2506,6 +2507,8 @@ async def add_metric(
             "max_score": metric.max_score,
             "block_id": metric.block_id,
             "is_critical": metric.is_critical,
+            "is_global_critical": metric.is_global_critical,
+            "allow_na": metric.allow_na,
             "resets_block": metric.resets_block
         }
     })
@@ -2581,6 +2584,13 @@ async def update_metric(
     if "is_critical" in data:
         metric.is_critical = data["is_critical"]
     
+    # НОВЫЕ ПОЛЯ
+    if "is_global_critical" in data:
+        metric.is_global_critical = data["is_global_critical"]
+    
+    if "allow_na" in data:
+        metric.allow_na = data["allow_na"]
+    
     if "penalty_type" in data:
         metric.penalty_type = data["penalty_type"]
     
@@ -2617,6 +2627,33 @@ async def reorder_metrics(
     
     db.commit()
     return JSONResponse({"status": "success"})
+
+@app.delete("/api/metrics/{metric_id}")
+async def delete_metric(
+    metric_id: int,
+    current_user: User = Depends(require_role(['admin', 'controller'])),
+    db: Session = Depends(get_db)
+):
+    """Удаление метрики"""
+    metric = db.query(Metric).filter(Metric.id == metric_id).first()
+    if not metric:
+        raise HTTPException(status_code=404, detail="Метрика не найдена")
+    
+    # Проверяем, используется ли метрика в оценках
+    evaluations_count = db.query(EvaluationMetric).filter(EvaluationMetric.metric_id == metric_id).count()
+    if evaluations_count > 0:
+        # Если есть оценки, просто деактивируем
+        metric.is_active = False
+        db.commit()
+        return JSONResponse({
+            "status": "success", 
+            "message": f"Метрика деактивирована, так как используется в {evaluations_count} оценках"
+        })
+    else:
+        # Если нет оценок, удаляем полностью
+        db.delete(metric)
+        db.commit()
+        return JSONResponse({"status": "success", "message": "Метрика удалена"})
 
 # ============== ОТЧЕТЫ И СТАТИСТИКА ==============
 
@@ -3408,6 +3445,8 @@ async def get_project_metrics(
             "description": metric.description,
             "max_score": metric.max_score,
             "is_critical": metric.is_critical,
+            "is_global_critical": metric.is_global_critical,  # НОВОЕ ПОЛЕ
+            "allow_na": metric.allow_na,                      # НОВОЕ ПОЛЕ
             "penalty_type": metric.penalty_type,
             "penalty_value": metric.penalty_value,
             "resets_block": metric.resets_block,

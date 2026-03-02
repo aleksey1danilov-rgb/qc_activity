@@ -1,13 +1,30 @@
-# database.py - финальная версия с темами звонков и длительностью
+# database.py - финальная версия с поддержкой PostgreSQL
 
+import os
 from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey, Text, Boolean, Date, Time
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime, date, time
 from enum import Enum
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./calls.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+# Определяем URL базы данных из переменной окружения или используем SQLite по умолчанию
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./calls.db")
+
+# Настройки для разных типов баз данных
+if SQLALCHEMY_DATABASE_URL.startswith("postgresql"):
+    # Для PostgreSQL
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL,
+        pool_size=5,
+        max_overflow=10,
+        pool_pre_ping=True
+    )
+else:
+    # Для SQLite
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL,
+        connect_args={"check_same_thread": False} if "sqlite" in SQLALCHEMY_DATABASE_URL else {}
+    )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -171,13 +188,15 @@ class Metric(Base):
     description = Column(String, nullable=True)
     
     # Максимальный балл по метрике
-    max_score = Column(Integer, nullable=False, default=5)  # По умолчанию 5 баллов
+    max_score = Column(Integer, nullable=False, default=5)
     
     # Тип метрики
     is_critical = Column(Boolean, default=False)  # Критичная ли метрика
+    is_global_critical = Column(Boolean, default=False)  # Глобальная критическая ошибка (обнуляет все блоки)
+    allow_na = Column(Boolean, default=True)  # Разрешено ли Н/О для этой метрики
     
     # Для критичных метрик — настройки штрафа
-    penalty_type = Column(String, nullable=True)  # "block" или "total"
+    penalty_type = Column(String, nullable=True)  # "block", "total" или "global"
     penalty_value = Column(Float, nullable=True)  # Размер штрафа в %
     
     # Обнуление подблока при невыполнении
@@ -573,3 +592,159 @@ def update_operator_avg_quality(operator_id, db_session):
         operator.avg_quality = avg_quality
         operator.avg_call_duration = int(avg_duration)  # Сохраняем как целое число секунд
         operator.total_evaluations = len(evaluations)
+
+
+def calculate_evaluation_scores(evaluation, db_session):
+    """
+    Пересчет всех показателей для оценки
+    """
+    try:
+        print(f"\n{'='*50}")
+        print(f"🔄 Пересчет оценки ID: {evaluation.id}")
+        
+        # Очищаем старые результаты по блокам
+        for br in evaluation.block_results:
+            db_session.delete(br)
+        
+        db_session.flush()
+        
+        # Получаем все метрики оценки
+        eval_metrics = evaluation.metrics
+        print(f"📊 Всего метрик: {len(eval_metrics)}")
+        
+        # Проверяем глобальные критические ошибки
+        global_reset = False
+        global_reset_metric = None
+        
+        for em in eval_metrics:
+            if em.metric and em.metric.is_global_critical and not em.is_not_evaluated and em.earned_score == 0:
+                global_reset = True
+                global_reset_metric = em.metric.name
+                print(f"💥 ГЛОБАЛЬНАЯ КРИТИЧЕСКАЯ ОШИБКА: '{em.metric.name}' - все блоки обнулены!")
+                break
+        
+        # Группируем по блокам
+        metrics_by_block = {}
+        for em in eval_metrics:
+            if em.metric and em.metric.block:
+                block_id = em.metric.block_id
+                if block_id not in metrics_by_block:
+                    metrics_by_block[block_id] = []
+                metrics_by_block[block_id].append(em)
+                print(f"  - Метрика '{em.metric.name}': earned={em.earned_score}, max={em.max_score}")
+        
+        if not metrics_by_block:
+            print("❌ Нет метрик, привязанных к блокам!")
+            evaluation.quality_percent = 0
+            return 0
+        
+        total_penalty = 0
+        block_percents = []
+        
+        # Обрабатываем каждый блок
+        for block_id, metrics_list in metrics_by_block.items():
+            block = metrics_list[0].metric.block
+            
+            block_earned = 0
+            block_max = 0
+            block_reset = False
+            critical_failures = 0
+            
+            print(f"\n📦 Блок: {block.name} (ID: {block_id})")
+            
+            # Если глобальная критическая ошибка - все блоки обнулены
+            if global_reset:
+                print(f"  💥 Блок обнулен из-за глобальной критической ошибки!")
+                block_reset = True
+                block_earned = 0
+                block_max = sum(em.max_score for em in metrics_list)
+            else:
+                # Проверяем на обнуление внутри блока
+                for em in metrics_list:
+                    if not em.is_not_evaluated and em.earned_score == 0:
+                        if em.metric.resets_block:
+                            block_reset = True
+                            print(f"  ⚠️ Метрика '{em.metric.name}' обнуляет блок!")
+                
+                # Если блок не обнулен, считаем баллы
+                if not block_reset:
+                    for em in metrics_list:
+                        if not em.is_not_evaluated and em.earned_score is not None:
+                            block_earned += em.earned_score
+                            block_max += em.max_score
+                            print(f"  ✓ {em.metric.name}: {em.earned_score}/{em.max_score}")
+                            
+                            # Проверяем критичные метрики
+                            if em.earned_score == 0 and em.metric.is_critical and not em.metric.is_global_critical:
+                                critical_failures += 1
+                                em.penalty_applied = True
+                                
+                                if em.metric.penalty_type == 'total':
+                                    total_penalty += em.metric.penalty_value or 0
+                                    print(f"  ⚠️ Критичная метрика, штраф: {em.metric.penalty_value}%")
+                            else:
+                                em.penalty_applied = False
+                else:
+                    print(f"  ❌ Блок обнулен, все метрики = 0")
+                    block_earned = 0
+                    block_max = sum(em.max_score for em in metrics_list)
+            
+            # Рассчитываем процент по блоку
+            if block_max > 0:
+                block_percent = (block_earned / block_max) * 100
+            else:
+                block_percent = 0
+            
+            block_percents.append(block_percent)
+            print(f"  📈 Процент блока: {block_percent:.1f}%")
+            
+            # Сохраняем результат блока
+            block_result = EvaluationBlockResult(
+                evaluation_id=evaluation.id,
+                block_id=block_id,
+                earned_score=block_earned,
+                max_score=block_max,
+                percent=block_percent,
+                was_reset=block_reset,
+                critical_failures=critical_failures
+            )
+            db_session.add(block_result)
+        
+        # Рассчитываем общий процент как среднее арифметическое по блокам
+        if block_percents:
+            base_percent = sum(block_percents) / len(block_percents)
+            print(f"\n📊 Среднее по блокам: {base_percent:.1f}%")
+            print(f"   Проценты блоков: {[round(p, 1) for p in block_percents]}")
+        else:
+            base_percent = 0
+            print(f"\n📊 Нет блоков, base_percent = 0")
+        
+        # Применяем штрафы
+        print(f"💰 Суммарный штраф: {total_penalty}%")
+        final_percent = base_percent * (1 - total_penalty / 100)
+        final_percent = max(0, min(100, final_percent))
+        
+        if global_reset:
+            print(f"💥 Итоговое качество: 0% (глобальная критическая ошибка)")
+            final_percent = 0
+        
+        print(f"🎯 Итоговое качество: {final_percent:.1f}%")
+        
+        # Обновляем оценку
+        evaluation.total_score = sum(em.earned_score or 0 for em in eval_metrics)
+        evaluation.max_possible_score = sum(em.max_score or 0 for em in eval_metrics)
+        evaluation.base_percent = base_percent
+        evaluation.penalty_percent = total_penalty
+        evaluation.quality_percent = final_percent
+        
+        db_session.flush()
+        
+        print(f"{'='*50}\n")
+        return evaluation.quality_percent
+        
+    except Exception as e:
+        print(f"❌ Ошибка в calculate_evaluation_scores: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        evaluation.quality_percent = 0
+        return 0

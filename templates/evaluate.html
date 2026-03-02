@@ -347,6 +347,21 @@
             color: #c62828;
         }
 
+        .metric-badge.global-critical {
+            background: #dc3545;
+            color: white;
+        }
+
+        .metric-badge.na-allowed {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .metric-badge.na-disabled {
+            background: #6c757d;
+            color: white;
+        }
+
         .metric-description {
             font-size: 13px;
             color: #6c757d;
@@ -1192,19 +1207,29 @@
                          data-max-score="{{ metric.max_score }}"
                          data-resets-block="{{ 'true' if metric.resets_block else 'false' }}"
                          data-is-critical="{{ 'true' if metric.is_critical else 'false' }}"
+                         data-is-global-critical="{{ 'true' if metric.is_global_critical else 'false' }}"
+                         data-allow-na="{{ 'true' if metric.allow_na else 'false' }}"
                          data-penalty-type="{{ metric.penalty_type or '' }}"
                          data-penalty-value="{{ metric.penalty_value or 0 }}">
                         
                         <div class="metric-header">
                             <span class="metric-name">{{ metric.name }}</span>
                             <div>
-                                <span class="metric-badge {% if metric.is_critical %}critical{% endif %}">
+                                <span class="metric-badge {% if metric.is_critical %}critical{% endif %} {% if metric.is_global_critical %}global-critical{% endif %}">
                                     max {{ metric.max_score }}
                                 </span>
+                                {% if metric.is_global_critical %}
+                                <span class="metric-badge global-critical">💥 глобальная</span>
+                                {% elif metric.is_critical %}
+                                <span class="metric-badge critical">критичная</span>
+                                {% endif %}
                                 {% if metric.resets_block %}
                                 <span class="metric-badge" style="background: #fff3e0; color: #ef6c00;">
                                     обнуляет блок
                                 </span>
+                                {% endif %}
+                                {% if metric.allow_na %}
+                                <span class="metric-badge na-allowed">Н/О разрешено</span>
                                 {% endif %}
                             </div>
                         </div>
@@ -1218,7 +1243,11 @@
                         <div class="evaluation-buttons">
                             <button type="button" class="btn-yes" onclick="setMetricValue({{ metric.id }}, 'yes')">✅ Да</button>
                             <button type="button" class="btn-no {% if metric.resets_block %}resets-block{% endif %}" onclick="setMetricValue({{ metric.id }}, 'no')">❌ Нет</button>
+                            
+                            <!-- Кнопка Н/О показывается только если разрешено в настройках метрики -->
+                            {% if metric.allow_na %}
                             <button type="button" class="btn-na" onclick="setMetricValue({{ metric.id }}, 'na')">❓ Н/О</button>
+                            {% endif %}
                         </div>
 
                         <!-- Поле для комментария при ответе "Нет" -->
@@ -1296,7 +1325,7 @@
         let metricComments = {};
         let blockResetStatus = {};
         let optionalBlocks = {};
-        let metricIsNA = {}; // Новое хранилище для Н/О
+        let metricIsNA = {};
 
         // Управление отображением опций тикета
         const createTicketCheckbox = document.getElementById('createTicket');
@@ -1378,7 +1407,7 @@
             
             yesBtn.classList.remove('selected');
             noBtn.classList.remove('selected');
-            naBtn.classList.remove('selected');
+            if (naBtn) naBtn.classList.remove('selected');
             
             if (value === 'yes') {
                 yesBtn.classList.add('selected');
@@ -1395,7 +1424,7 @@
                     commentField.classList.add('active');
                 }
             } else if (value === 'na') {
-                naBtn.classList.add('selected');
+                if (naBtn) naBtn.classList.add('selected');
                 metricValues[metricId] = null;
                 metricIsNA[metricId] = true;
                 if (commentField) {
@@ -1410,21 +1439,39 @@
         function updateBlockResetStatus(blockId) {
             const blockMetrics = document.querySelectorAll(`.metric-item[data-block-id="${blockId}"]`);
             let hasResettingNo = false;
+            let hasGlobalCritical = false;
             
             blockMetrics.forEach(metric => {
                 const mId = parseInt(metric.dataset.metricId);
                 const mResetsBlock = metric.dataset.resetsBlock === 'true';
-                // Только если метрика оценена как "НЕТ" и обнуляет блок
+                const mGlobalCritical = metric.dataset.isGlobalCritical === 'true';
+                
+                // Глобальная критическая ошибка обнуляет все блоки
+                if (mGlobalCritical && metricValues[mId] === 0 && !metricIsNA[mId]) {
+                    hasGlobalCritical = true;
+                }
+                
+                // Обычное обнуление блока
                 if (mResetsBlock && metricValues[mId] === 0 && !metricIsNA[mId]) {
                     hasResettingNo = true;
                 }
             });
             
-            blockResetStatus[blockId] = hasResettingNo;
+            // Глобальная критическая ошибка имеет приоритет
+            if (hasGlobalCritical) {
+                blockResetStatus[blockId] = true;
+                // Здесь можно добавить логику для всех блоков
+                document.querySelectorAll('.block-card').forEach(otherBlock => {
+                    const otherBlockId = parseInt(otherBlock.dataset.blockId);
+                    blockResetStatus[otherBlockId] = true;
+                });
+            } else {
+                blockResetStatus[blockId] = hasResettingNo;
+            }
             
             const blockCard = document.getElementById(`block-${blockId}`);
             if (blockCard) {
-                if (hasResettingNo) {
+                if (hasGlobalCritical || hasResettingNo) {
                     blockCard.classList.add('block-reset');
                 } else {
                     blockCard.classList.remove('block-reset');

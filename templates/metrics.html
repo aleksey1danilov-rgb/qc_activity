@@ -203,6 +203,34 @@
             margin-bottom: 4px;
         }
 
+        /* НОВЫЙ СТИЛЬ ДЛЯ ГЛОБАЛЬНЫХ КРИТИЧЕСКИХ МЕТРИК */
+        .badge-global-critical {
+            background: #dc3545;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-na-allowed {
+            background: #17a2b8;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-na-disabled {
+            background: #6c757d;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
         /* СТИЛИ ДЛЯ БЛОКОВ */
         .blocks-container {
             margin-top: 24px;
@@ -297,6 +325,11 @@
             color: #c62828;
         }
 
+        .badge-global-critical {
+            background: #dc3545;
+            color: white;
+        }
+
         .badge-reset {
             background: #fff3e0;
             color: #ef6c00;
@@ -305,6 +338,16 @@
         .badge-penalty {
             background: #f3e5f5;
             color: #7b1fa2;
+        }
+
+        .badge-na-allowed {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .badge-na-disabled {
+            background: #6c757d;
+            color: white;
         }
 
         .badge-inactive {
@@ -587,13 +630,13 @@
             </div>
         </div>
 
-        <!-- НОВЫЙ БЛОК: Информация о критичных метриках -->
+        <!-- ОБНОВЛЕННЫЙ БЛОК: Информация о критичных метриках -->
         <div class="info-box">
-            <h4>ℹ️ О критичных метриках</h4>
-            <p>Критичные метрики с max_score = 0 работают следующим образом:</p>
+            <h4>ℹ️ О типах метрик</h4>
             <ul>
-                <li><strong>Если метрика выполнена (ДА):</strong> не добавляет баллов (0/max), но и не штрафует</li>
-                <li><strong>Если метрика НЕ выполнена (НЕТ):</strong> применяется штраф (если указан) или обнуление блока</li>
+                <li><strong>Критичная метрика:</strong> при невыполнении применяется штраф (если указан)</li>
+                <li><strong>Глобальная критическая ошибка:</strong> при невыполнении обнуляет ВСЕ блоки (качество = 0%)</li>
+                <li><strong>Разрешено Н/О:</strong> если включено, при оценке можно выбрать "Не оценивалось"</li>
                 <li><strong>Рекомендация:</strong> для критичных метрик устанавливайте max_score = 0</li>
             </ul>
         </div>
@@ -634,21 +677,34 @@
                             <span class="metric-name">{{ metric.name }}</span>
                             <div class="metric-badges">
                                 <span class="badge badge-max">max {{ metric.max_score|default(5) }}</span>
-                                {% if metric.is_critical %}
+                                
+                                {% if metric.is_global_critical %}
+                                <span class="badge badge-global-critical">💥 глобальная</span>
+                                {% elif metric.is_critical %}
                                 <span class="badge badge-critical">критичная</span>
                                 {% endif %}
+                                
                                 {% if metric.resets_block %}
                                 <span class="badge badge-reset">обнуляет блок</span>
                                 {% endif %}
+                                
                                 {% if metric.penalty_type %}
                                 <span class="badge badge-penalty">
                                     штраф {{ metric.penalty_value }}% 
                                     {% if metric.penalty_type == 'total' %}от общ{% else %}от блока{% endif %}
                                 </span>
                                 {% endif %}
+                                
+                                {% if metric.allow_na %}
+                                <span class="badge badge-na-allowed">Н/О разрешено</span>
+                                {% else %}
+                                <span class="badge badge-na-disabled">Н/О запрещено</span>
+                                {% endif %}
+                                
                                 {% if metric.max_score == 0 %}
                                 <span class="badge badge-critical" style="background: #9c27b0; color: white;">индикатор</span>
                                 {% endif %}
+                                
                                 {% if metric.is_active == False %}
                                 <span class="badge badge-inactive">неактивна</span>
                                 {% endif %}
@@ -733,7 +789,7 @@
         </div>
     </div>
 
-    <!-- Модальное окно добавления/редактирования метрики -->
+    <!-- ОБНОВЛЕННОЕ Модальное окно добавления/редактирования метрики -->
     <div id="metricModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -770,7 +826,6 @@
                     <textarea name="description" id="metricDescription" rows="2" placeholder="Что именно оцениваем..."></textarea>
                 </div>
                 
-                <!-- ИЗМЕНЕНО: Добавлена возможность выбрать 0 баллов -->
                 <div class="form-group">
                     <label>🎯 Максимальный балл</label>
                     <select name="max_score" id="metricMaxScore">
@@ -789,7 +844,14 @@
                     <label for="metricIsCritical">⚠️ Критичная метрика (штраф при невыполнении)</label>
                 </div>
 
-                <!-- Блок настроек штрафа (показывается если is_critical) -->
+                <!-- НОВЫЙ ЧЕКБОКС: Глобальная критическая ошибка -->
+                <div class="form-group checkbox-group" id="globalCriticalGroup" style="display: none;">
+                    <input type="checkbox" name="is_global_critical" id="metricIsGlobalCritical">
+                    <label for="metricIsGlobalCritical">💥 Глобальная критическая ошибка (обнуляет ВСЕ блоки)</label>
+                    <small style="color: #dc3545; display: block; margin-top: 4px;">ВНИМАНИЕ: При невыполнении обнуляются все блоки! Качество = 0%</small>
+                </div>
+
+                <!-- Блок настроек штрафа (показывается если is_critical и не global) -->
                 <div id="penaltySettings" style="display: none;">
                     <div class="penalty-row">
                         <div class="form-group">
@@ -809,6 +871,13 @@
                 <div class="form-group checkbox-group">
                     <input type="checkbox" name="resets_block" id="metricResetsBlock">
                     <label for="metricResetsBlock">🔄 Обнуляет весь блок при невыполнении</label>
+                </div>
+                
+                <!-- НОВЫЙ ЧЕКБОКС: Разрешить Н/О -->
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" name="allow_na" id="metricAllowNA" checked>
+                    <label for="metricAllowNA">❓ Разрешена оценка "Н/О" (не оценивается)</label>
+                    <small style="color: #6c757d; display: block; margin-left: 24px;">Если выключено, кнопка Н/О не будет отображаться при оценке</small>
                 </div>
                 
                 <div class="form-group checkbox-group">
@@ -873,7 +942,10 @@
                 document.getElementById('metricBlockId').value = blockId || '';
                 document.getElementById('metricBlockSelect').value = blockId || '';
                 document.getElementById('metricIsActive').checked = true;
+                document.getElementById('metricAllowNA').checked = true;
                 document.getElementById('penaltySettings').style.display = 'none';
+                document.getElementById('globalCriticalGroup').style.display = 'none';
+                document.getElementById('metricIsGlobalCritical').checked = false;
                 document.getElementById('submitMetricBtn').innerHTML = 'Создать';
                 document.getElementById('metricModal').style.display = 'flex';
                 document.body.style.overflow = 'hidden';
@@ -891,6 +963,7 @@
                 document.body.style.overflow = 'auto';
                 document.getElementById('metricForm').reset();
                 document.getElementById('penaltySettings').style.display = 'none';
+                document.getElementById('globalCriticalGroup').style.display = 'none';
                 currentItemId = null;
             }
 
@@ -962,15 +1035,23 @@
                         document.getElementById('metricDescription').value = metric.description || '';
                         document.getElementById('metricMaxScore').value = metric.max_score || 5;
                         document.getElementById('metricIsCritical').checked = metric.is_critical || false;
+                        document.getElementById('metricIsGlobalCritical').checked = metric.is_global_critical || false;
                         document.getElementById('metricResetsBlock').checked = metric.resets_block || false;
+                        document.getElementById('metricAllowNA').checked = metric.allow_na !== false;
                         document.getElementById('metricIsActive').checked = metric.is_active !== false;
                         
                         if (metric.is_critical) {
-                            document.getElementById('penaltySettings').style.display = 'block';
-                            document.getElementById('metricPenaltyType').value = metric.penalty_type || 'block';
-                            document.getElementById('metricPenaltyValue').value = metric.penalty_value || 20;
+                            document.getElementById('globalCriticalGroup').style.display = 'block';
+                            if (!metric.is_global_critical) {
+                                document.getElementById('penaltySettings').style.display = 'block';
+                                document.getElementById('metricPenaltyType').value = metric.penalty_type || 'block';
+                                document.getElementById('metricPenaltyValue').value = metric.penalty_value || 20;
+                            } else {
+                                document.getElementById('penaltySettings').style.display = 'none';
+                            }
                         } else {
                             document.getElementById('penaltySettings').style.display = 'none';
+                            document.getElementById('globalCriticalGroup').style.display = 'none';
                         }
                         
                         document.getElementById('submitMetricBtn').innerHTML = 'Сохранить';
@@ -1044,11 +1125,13 @@
                     description: formData.get('description') || '',
                     max_score: parseInt(formData.get('max_score')) || 5,
                     is_critical: formData.get('is_critical') === 'on',
+                    is_global_critical: formData.get('is_global_critical') === 'on',
                     resets_block: formData.get('resets_block') === 'on',
+                    allow_na: formData.get('allow_na') === 'on',
                     is_active: formData.get('is_active') === 'on'
                 };
 
-                if (data.is_critical) {
+                if (data.is_critical && !data.is_global_critical) {
                     data.penalty_type = formData.get('penalty_type') || 'block';
                     data.penalty_value = parseInt(formData.get('penalty_value')) || 20;
                 }
@@ -1190,16 +1273,20 @@
                     });
                 }
 
-                // Показывать/скрывать настройки штрафа
+                // Показывать/скрывать настройки штрафа и глобальной критичности
                 const isCriticalCheckbox = document.getElementById('metricIsCritical');
                 if (isCriticalCheckbox) {
                     isCriticalCheckbox.addEventListener('change', function() {
                         const penaltySettings = document.getElementById('penaltySettings');
+                        const globalCriticalGroup = document.getElementById('globalCriticalGroup');
+                        const isGlobalCritical = document.getElementById('metricIsGlobalCritical');
                         const maxScoreSelect = document.getElementById('metricMaxScore');
                         
                         if (this.checked) {
-                            penaltySettings.style.display = 'block';
-                            // Подсказываем, что для критичных метрик лучше 0
+                            globalCriticalGroup.style.display = 'block';
+                            if (!isGlobalCritical.checked) {
+                                penaltySettings.style.display = 'block';
+                            }
                             if (maxScoreSelect.value !== '0') {
                                 if (confirm('Для критичных метрик рекомендуется устанавливать 0 баллов. Установить 0?')) {
                                     maxScoreSelect.value = '0';
@@ -1207,6 +1294,24 @@
                             }
                         } else {
                             penaltySettings.style.display = 'none';
+                            globalCriticalGroup.style.display = 'none';
+                            isGlobalCritical.checked = false;
+                        }
+                    });
+                }
+
+                // При выборе глобальной критичности скрываем обычные штрафы
+                const isGlobalCriticalCheckbox = document.getElementById('metricIsGlobalCritical');
+                if (isGlobalCriticalCheckbox) {
+                    isGlobalCriticalCheckbox.addEventListener('change', function() {
+                        const penaltySettings = document.getElementById('penaltySettings');
+                        if (this.checked) {
+                            penaltySettings.style.display = 'none';
+                        } else {
+                            const isCritical = document.getElementById('metricIsCritical').checked;
+                            if (isCritical) {
+                                penaltySettings.style.display = 'block';
+                            }
                         }
                     });
                 }
