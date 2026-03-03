@@ -43,6 +43,15 @@ from reports import (
     get_weekly_dynamics, get_monthly_dynamics
 )
 
+import sys
+import traceback
+
+def log_exception(exc_type, exc_value, exc_traceback):
+    print("❌❌❌ НЕПЕРЕХВАЧЕННАЯ ОШИБКА:")
+    traceback.print_exception(exc_type, exc_value, exc_traceback)
+
+sys.excepthook = log_exception
+
 app = FastAPI(debug=True, title="Оценка звонков")
 
 # Подключаем роутер авторизации
@@ -123,126 +132,7 @@ def startup_event():
     init_db()
     print("✅ Таблицы созданы/проверены")
     
-    # ============== МИГРАЦИЯ ТАБЛИЦЫ METRICS ==============
-    print("\n📦 ПРОВЕРКА СТРУКТУРЫ ТАБЛИЦЫ METRICS:")
-    try:
-        from database import SessionLocal
-        from sqlalchemy import inspect, text
-        
-        db = SessionLocal()
-        
-        # Определяем тип базы данных
-        db_url = str(db.bind.url)
-        is_postgresql = 'postgresql' in db_url
-        
-        if is_postgresql:
-            print("   📊 Тип БД: PostgreSQL")
-        else:
-            print("   📊 Тип БД: SQLite")
-        
-        # Проверяем существующие колонки в таблице metrics
-        inspector = inspect(db.bind)
-        columns = [col['name'] for col in inspector.get_columns('metrics')]
-        print(f"   📋 Существующие колонки: {', '.join(columns)}")
-        
-        # Добавляем is_global_critical, если нет
-        if 'is_global_critical' not in columns:
-            print("   ➕ Добавляем колонку is_global_critical...")
-            if is_postgresql:
-                db.execute(text("ALTER TABLE metrics ADD COLUMN is_global_critical BOOLEAN DEFAULT FALSE"))
-            else:
-                db.execute(text("ALTER TABLE metrics ADD COLUMN is_global_critical BOOLEAN DEFAULT 0"))
-            db.commit()
-            print("   ✅ Колонка is_global_critical добавлена")
-        else:
-            print("   ✅ Колонка is_global_critical уже существует")
-        
-        # Добавляем allow_na, если нет
-        if 'allow_na' not in columns:
-            print("   ➕ Добавляем колонку allow_na...")
-            if is_postgresql:
-                db.execute(text("ALTER TABLE metrics ADD COLUMN allow_na BOOLEAN DEFAULT TRUE"))
-            else:
-                db.execute(text("ALTER TABLE metrics ADD COLUMN allow_na BOOLEAN DEFAULT 1"))
-            db.commit()
-            print("   ✅ Колонка allow_na добавлена")
-        else:
-            print("   ✅ Колонка allow_na уже существует")
-        
-        db.close()
-        print("✅ Миграция таблицы metrics завершена")
-        
-    except Exception as e:
-        print(f"⚠️ Ошибка при миграции metrics: {e}")
-        import traceback
-        traceback.print_exc()
-    # ======================================================
-# ============== МИГРАЦИЯ ТАБЛИЦЫ METRICS ==============
-print("\n📦 ПРОВЕРКА СТРУКТУРЫ ТАБЛИЦЫ METRICS:")
-try:
-    from database import SessionLocal
-    from sqlalchemy import inspect, text
-    
-    db = SessionLocal()
-    
-    # Определяем тип базы данных
-    db_url = str(db.bind.url)
-    is_postgresql = 'postgresql' in db_url  # ← ВОТ ЗДЕСЬ ОПРЕДЕЛЕНИЕ
-    
-    if is_postgresql:
-        print("   📊 Тип БД: PostgreSQL")
-    else:
-        print("   📊 Тип БД: SQLite")
-    
-    # Проверяем существующие колонки
-    inspector = inspect(db.bind)
-    columns = [col['name'] for col in inspector.get_columns('metrics')]
-    print(f"   📋 Существующие колонки: {', '.join(columns)}")
-    
-    # Добавляем is_global_critical, если нет
-    if 'is_global_critical' not in columns:
-        print("   ➕ Добавляем колонку is_global_critical...")
-        if is_postgresql:
-            db.execute(text("ALTER TABLE metrics ADD COLUMN is_global_critical BOOLEAN DEFAULT FALSE"))
-        else:
-            db.execute(text("ALTER TABLE metrics ADD COLUMN is_global_critical BOOLEAN DEFAULT 0"))
-        db.commit()
-        print("   ✅ Колонка is_global_critical добавлена")
-    else:
-        print("   ✅ Колонка is_global_critical уже существует")
-    
-    # Добавляем allow_na, если нет
-    if 'allow_na' not in columns:
-        print("   ➕ Добавляем колонку allow_na...")
-        if is_postgresql:
-            db.execute(text("ALTER TABLE metrics ADD COLUMN allow_na BOOLEAN DEFAULT TRUE"))
-        else:
-            db.execute(text("ALTER TABLE metrics ADD COLUMN allow_na BOOLEAN DEFAULT 1"))
-        db.commit()
-        print("   ✅ Колонка allow_na добавлена")
-    else:
-        print("   ✅ Колонка allow_na уже существует")
-    
-    # Добавляем resets_all, если нет
-    if 'resets_all' not in columns:
-        print("   ➕ Добавляем колонку resets_all...")
-        if is_postgresql:
-            db.execute(text("ALTER TABLE metrics ADD COLUMN resets_all BOOLEAN DEFAULT FALSE"))
-        else:
-            db.execute(text("ALTER TABLE metrics ADD COLUMN resets_all BOOLEAN DEFAULT 0"))
-        db.commit()
-        print("   ✅ Колонка resets_all добавлена")
-    else:
-        print("   ✅ Колонка resets_all уже существует")
-    
-    db.close()
-    print("✅ Миграция таблицы metrics завершена")
-    
-except Exception as e:
-    print(f"⚠️ Ошибка при миграции metrics: {e}")
-    import traceback
-    traceback.print_exc()
-# ======================================================
+   
     # ============== СОЗДАНИЕ ПОЛЬЗОВАТЕЛЕЙ ==============
     print("\n👤 ПРОВЕРКА ПОЛЬЗОВАТЕЛЕЙ:")
     from database import SessionLocal, User
