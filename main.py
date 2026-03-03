@@ -2472,6 +2472,8 @@ async def submit_evaluation(
 
 # ============== УПРАВЛЕНИЕ МЕТРИКАМИ ==============
 
+# ============== УПРАВЛЕНИЕ МЕТРИКАМИ (ОБНОВЛЕННОЕ) ==============
+
 @app.get("/project/{project_id}/metrics", response_class=HTMLResponse)
 async def project_metrics_page(
     request: Request,
@@ -2517,6 +2519,7 @@ async def project_metrics_page(
         }
     )
 
+
 @app.post("/api/project/{project_id}/metrics")
 async def add_metric(
     project_id: int,
@@ -2524,7 +2527,7 @@ async def add_metric(
     current_user: User = Depends(require_role(['admin', 'controller'])),
     db: Session = Depends(get_db)
 ):
-    """Добавление новой метрики"""
+    """Добавление новой метрики (с поддержкой resets_all)"""
     data = await request.json()
     
     block_id = data.get("block_id")
@@ -2562,9 +2565,10 @@ async def add_metric(
         is_critical=data.get("is_critical", False),
         is_global_critical=data.get("is_global_critical", False),
         allow_na=data.get("allow_na", True),
+        resets_block=data.get("resets_block", False),
+        resets_all=data.get("resets_all", False),  # НОВОЕ ПОЛЕ
         penalty_type=data.get("penalty_type") if data.get("is_critical") else None,
         penalty_value=data.get("penalty_value") if data.get("is_critical") else None,
-        resets_block=data.get("resets_block", False),
         display_order=max_order + 1
     )
     db.add(metric)
@@ -2581,9 +2585,11 @@ async def add_metric(
             "is_critical": metric.is_critical,
             "is_global_critical": metric.is_global_critical,
             "allow_na": metric.allow_na,
-            "resets_block": metric.resets_block
+            "resets_block": metric.resets_block,
+            "resets_all": metric.resets_all  # НОВОЕ ПОЛЕ
         }
     })
+
 
 @app.post("/api/project/{project_id}/blocks")
 async def create_metric_block(
@@ -2619,6 +2625,7 @@ async def create_metric_block(
         }
     })
 
+
 @app.put("/api/metrics/{metric_id}")
 async def update_metric(
     metric_id: int,
@@ -2626,7 +2633,7 @@ async def update_metric(
     current_user: User = Depends(require_role(['admin', 'controller'])),
     db: Session = Depends(get_db)
 ):
-    """Обновление метрики"""
+    """Обновление метрики (с поддержкой resets_all)"""
     metric = db.query(Metric).filter(Metric.id == metric_id).first()
     if not metric:
         raise HTTPException(status_code=404, detail="Метрика не найдена")
@@ -2656,21 +2663,23 @@ async def update_metric(
     if "is_critical" in data:
         metric.is_critical = data["is_critical"]
     
-    # НОВЫЕ ПОЛЯ
     if "is_global_critical" in data:
         metric.is_global_critical = data["is_global_critical"]
     
     if "allow_na" in data:
         metric.allow_na = data["allow_na"]
     
+    if "resets_block" in data:
+        metric.resets_block = data["resets_block"]
+    
+    if "resets_all" in data:  # НОВОЕ ПОЛЕ
+        metric.resets_all = data["resets_all"]
+    
     if "penalty_type" in data:
         metric.penalty_type = data["penalty_type"]
     
     if "penalty_value" in data:
         metric.penalty_value = data["penalty_value"]
-    
-    if "resets_block" in data:
-        metric.resets_block = data["resets_block"]
     
     if "is_active" in data:
         metric.is_active = data["is_active"]
@@ -2679,26 +2688,6 @@ async def update_metric(
     
     return JSONResponse({"status": "success"})
 
-@app.post("/api/projects/{project_id}/metrics/reorder")
-async def reorder_metrics(
-    project_id: int,
-    request: Request,
-    current_user: User = Depends(require_role(['admin', 'controller'])),
-    db: Session = Depends(get_db)
-):
-    """Изменение порядка метрик"""
-    data = await request.json()
-    orders = data.get("orders", [])
-    
-    for item in orders:
-        metric = db.query(Metric).filter(
-            Metric.id == item["id"]
-        ).first()
-        if metric:
-            metric.display_order = item["order"]
-    
-    db.commit()
-    return JSONResponse({"status": "success"})
 
 @app.delete("/api/metrics/{metric_id}")
 async def delete_metric(
@@ -2727,6 +2716,134 @@ async def delete_metric(
         db.commit()
         return JSONResponse({"status": "success", "message": "Метрика удалена"})
 
+
+@app.delete("/api/blocks/{block_id}")
+async def delete_block(
+    block_id: int,
+    current_user: User = Depends(require_role(['admin', 'controller'])),
+    db: Session = Depends(get_db)
+):
+    """Удаление блока метрик"""
+    block = db.query(MetricBlock).filter(MetricBlock.id == block_id).first()
+    if not block:
+        raise HTTPException(status_code=404, detail="Блок не найден")
+    
+    # Проверяем, есть ли метрики в этом блоке
+    metrics_count = db.query(Metric).filter(Metric.block_id == block_id).count()
+    if metrics_count > 0:
+        # Если есть метрики, просто деактивируем блок
+        block.is_active = False
+        db.commit()
+        return JSONResponse({
+            "status": "success",
+            "message": f"Блок деактивирован, так как содержит {metrics_count} метрик"
+        })
+    else:
+        # Если нет метрик, удаляем полностью
+        db.delete(block)
+        db.commit()
+        return JSONResponse({
+            "status": "success",
+            "message": "Блок удален"
+        })
+
+
+@app.put("/api/blocks/{block_id}")
+async def update_block(
+    block_id: int,
+    request: Request,
+    current_user: User = Depends(require_role(['admin', 'controller'])),
+    db: Session = Depends(get_db)
+):
+    """Обновление блока метрик"""
+    block = db.query(MetricBlock).filter(MetricBlock.id == block_id).first()
+    if not block:
+        raise HTTPException(status_code=404, detail="Блок не найден")
+    
+    data = await request.json()
+    
+    # Обновляем поля
+    if "name" in data:
+        block.name = data["name"]
+    if "description" in data:
+        block.description = data["description"]
+    
+    db.commit()
+    
+    return JSONResponse({
+        "status": "success",
+        "block": {
+            "id": block.id,
+            "name": block.name,
+            "description": block.description,
+            "display_order": block.display_order
+        }
+    })
+
+
+@app.get("/api/projects/{project_id}/metrics")
+async def get_project_metrics(
+    project_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Получение метрик проекта (с полем resets_all)"""
+    metrics = db.query(Metric).join(MetricBlock).filter(
+        MetricBlock.project_id == project_id,
+        Metric.is_active == True,
+        MetricBlock.is_active == True
+    ).order_by(MetricBlock.display_order, Metric.display_order).all()
+    
+    result = []
+    for metric in metrics:
+        result.append({
+            "id": metric.id,
+            "name": metric.name,
+            "description": metric.description,
+            "max_score": metric.max_score,
+            "is_critical": metric.is_critical,
+            "is_global_critical": metric.is_global_critical,
+            "allow_na": metric.allow_na,
+            "resets_block": metric.resets_block,
+            "resets_all": metric.resets_all,  # НОВОЕ ПОЛЕ
+            "penalty_type": metric.penalty_type,
+            "penalty_value": metric.penalty_value,
+            "block_id": metric.block_id,
+            "block_name": metric.block.name,
+            "display_order": metric.display_order
+        })
+    
+    return JSONResponse(result)
+
+
+@app.get("/api/projects/{project_id}/blocks")
+async def get_project_blocks(
+    project_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Получение блоков метрик проекта"""
+    blocks = db.query(MetricBlock).filter(
+        MetricBlock.project_id == project_id,
+        MetricBlock.is_active == True
+    ).order_by(MetricBlock.display_order).all()
+    
+    result = []
+    for block in blocks:
+        metrics_count = db.query(Metric).filter(
+            Metric.block_id == block.id,
+            Metric.is_active == True
+        ).count()
+        
+        result.append({
+            "id": block.id,
+            "name": block.name,
+            "description": block.description,
+            "display_order": block.display_order,
+            "metrics_count": metrics_count
+        })
+    
+    return JSONResponse(result)
 # ============== ОТЧЕТЫ И СТАТИСТИКА ==============
 
 @app.get("/reports", response_class=HTMLResponse)

@@ -204,6 +204,8 @@ class Metric(Base):
     
     # Порядок отображения внутри блока
     display_order = Column(Integer, default=0)
+
+    resets_all = Column(Boolean, default=False)
     
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -460,6 +462,36 @@ def calculate_evaluation_scores(evaluation, db_session):
         eval_metrics = evaluation.metrics
         print(f"📊 Всего метрик: {len(eval_metrics)}")
         
+        # ============== ПРОВЕРКА НА ГЛОБАЛЬНОЕ ОБНУЛЕНИЕ ==============
+        # Проверяем метрики, обнуляющие ВСЮ оценку
+        for em in eval_metrics:
+            if em.metric and em.metric.resets_all and not em.is_not_evaluated and em.earned_score == 0:
+                print(f"💀💀💀 КРИТИЧЕСКАЯ ОШИБКА: Метрика '{em.metric.name}' обнуляет ВСЮ оценку!")
+                # Обнуляем все результаты
+                evaluation.total_score = 0
+                evaluation.max_possible_score = 0
+                evaluation.base_percent = 0
+                evaluation.penalty_percent = 0
+                evaluation.quality_percent = 0
+                
+                # Добавляем пустые результаты для каждого блока (чтобы сохранить структуру)
+                for block_id in set(em.metric.block_id for em in eval_metrics if em.metric and em.metric.block):
+                    block_result = EvaluationBlockResult(
+                        evaluation_id=evaluation.id,
+                        block_id=block_id,
+                        earned_score=0,
+                        max_score=0,
+                        percent=0,
+                        was_reset=True,
+                        critical_failures=1
+                    )
+                    db_session.add(block_result)
+                
+                db_session.flush()
+                print(f"{'='*50}\n")
+                return 0
+        # ================================================================
+        
         # Группируем по блокам
         metrics_by_block = {}
         for em in eval_metrics:
@@ -489,7 +521,7 @@ def calculate_evaluation_scores(evaluation, db_session):
             
             print(f"\n📦 Блок: {block.name} (ID: {block_id})")
             
-            # Проверяем на обнуление
+            # Проверяем на обнуление блока
             for em in metrics_list:
                 if not em.is_not_evaluated and em.earned_score == 0:
                     if em.metric.resets_block:

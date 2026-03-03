@@ -222,6 +222,18 @@
             border-color: #fc8181;
         }
 
+        /* НОВЫЙ СТИЛЬ: Глобальное обнуление всей оценки */
+        .global-reset-badge {
+            background: #8b0000;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-left: 8px;
+        }
+
         /* Стили для опциональных блоков */
         .block-card.block-optional {
             background: #fff9f0;
@@ -322,6 +334,11 @@
             border-left: 4px solid #fc8181;
         }
 
+        .metric-item.resets-all {
+            border-left: 4px solid #8b0000;
+            background: #fff0f0;
+        }
+
         .metric-header {
             display: flex;
             justify-content: space-between;
@@ -359,6 +376,11 @@
 
         .metric-badge.na-disabled {
             background: #6c757d;
+            color: white;
+        }
+
+        .metric-badge.resets-all {
+            background: #8b0000;
             color: white;
         }
 
@@ -1206,6 +1228,7 @@
                          data-block-id="{{ block.id }}"
                          data-max-score="{{ metric.max_score }}"
                          data-resets-block="{{ 'true' if metric.resets_block else 'false' }}"
+                         data-resets-all="{{ 'true' if metric.resets_all else 'false' }}"
                          data-is-critical="{{ 'true' if metric.is_critical else 'false' }}"
                          data-is-global-critical="{{ 'true' if metric.is_global_critical else 'false' }}"
                          data-allow-na="{{ 'true' if metric.allow_na else 'false' }}"
@@ -1218,7 +1241,9 @@
                                 <span class="metric-badge {% if metric.is_critical %}critical{% endif %} {% if metric.is_global_critical %}global-critical{% endif %}">
                                     max {{ metric.max_score }}
                                 </span>
-                                {% if metric.is_global_critical %}
+                                {% if metric.resets_all %}
+                                <span class="metric-badge resets-all">💀 обнуляет всё</span>
+                                {% elif metric.is_global_critical %}
                                 <span class="metric-badge global-critical">💥 глобальная</span>
                                 {% elif metric.is_critical %}
                                 <span class="metric-badge critical">критичная</span>
@@ -1326,6 +1351,7 @@
         let blockResetStatus = {};
         let optionalBlocks = {};
         let metricIsNA = {};
+        let globalReset = false; // НОВЫЙ ФЛАГ: обнуление всей оценки
 
         // Управление отображением опций тикета
         const createTicketCheckbox = document.getElementById('createTicket');
@@ -1388,6 +1414,7 @@
                 optionalBlocks[blockId] = false;
             });
 
+            globalReset = false;
             updateAllPreviews();
         });
 
@@ -1399,6 +1426,7 @@
             const blockId = parseInt(metricItem.dataset.blockId);
             const maxScore = parseInt(metricItem.dataset.maxScore);
             const resetsBlock = metricItem.dataset.resetsBlock === 'true';
+            const resetsAll = metricItem.dataset.resetsAll === 'true';
             
             const yesBtn = metricItem.querySelector('.btn-yes');
             const noBtn = metricItem.querySelector('.btn-no');
@@ -1422,6 +1450,11 @@
                 metricIsNA[metricId] = false;
                 if (commentField) {
                     commentField.classList.add('active');
+                }
+                
+                // Если метрика обнуляет всё, устанавливаем глобальный флаг
+                if (resetsAll) {
+                    globalReset = true;
                 }
             } else if (value === 'na') {
                 if (naBtn) naBtn.classList.add('selected');
@@ -1460,7 +1493,7 @@
             // Глобальная критическая ошибка имеет приоритет
             if (hasGlobalCritical) {
                 blockResetStatus[blockId] = true;
-                // Здесь можно добавить логику для всех блоков
+                // Обнуляем все блоки
                 document.querySelectorAll('.block-card').forEach(otherBlock => {
                     const otherBlockId = parseInt(otherBlock.dataset.blockId);
                     blockResetStatus[otherBlockId] = true;
@@ -1492,15 +1525,33 @@
         }
 
         function updateAllPreviews() {
+            // Проверяем глобальное обнуление
+            let hasGlobalReset = false;
+            document.querySelectorAll('.metric-item').forEach(metric => {
+                const metricId = parseInt(metric.dataset.metricId);
+                const resetsAll = metric.dataset.resetsAll === 'true';
+                if (resetsAll && metricValues[metricId] === 0 && !metricIsNA[metricId]) {
+                    hasGlobalReset = true;
+                }
+            });
+            
+            // Обновляем проценты блоков
             document.querySelectorAll('.block-card').forEach(blockCard => {
                 const blockId = parseInt(blockCard.dataset.blockId);
-                const isReset = blockResetStatus[blockId] || false;
                 const isOptional = optionalBlocks[blockId] || false;
                 
                 if (isOptional && !isBlockEvaluated(blockId)) {
                     document.getElementById(`block-percent-${blockId}`).textContent = '—';
                     return;
                 }
+                
+                // Если глобальное обнуление - все проценты 0
+                if (hasGlobalReset) {
+                    document.getElementById(`block-percent-${blockId}`).textContent = '0%';
+                    return;
+                }
+                
+                const isReset = blockResetStatus[blockId] || false;
                 
                 let blockEarned = 0;
                 let blockMax = 0;
@@ -1536,21 +1587,39 @@
             const preview = document.getElementById('scorePreview');
             preview.innerHTML = '';
 
+            // Проверяем глобальное обнуление
+            let hasGlobalReset = false;
+            document.querySelectorAll('.metric-item').forEach(metric => {
+                const metricId = parseInt(metric.dataset.metricId);
+                const resetsAll = metric.dataset.resetsAll === 'true';
+                if (resetsAll && metricValues[metricId] === 0 && !metricIsNA[metricId]) {
+                    hasGlobalReset = true;
+                }
+            });
+
             const blocks = [];
             document.querySelectorAll('.block-card').forEach(blockCard => {
                 const blockId = parseInt(blockCard.dataset.blockId);
                 const blockName = blockCard.dataset.blockName;
                 const isOptional = optionalBlocks[blockId] || false;
-                const percentEl = document.getElementById(`block-percent-${blockId}`);
                 
                 if (isOptional && !isBlockEvaluated(blockId)) {
                     return;
                 }
                 
-                blocks.push({
-                    name: blockName + (isOptional ? ' (опц.)' : ''),
-                    percent: percentEl ? percentEl.textContent : '0%'
-                });
+                // Если глобальное обнуление, показываем 0%
+                if (hasGlobalReset) {
+                    blocks.push({
+                        name: blockName + (isOptional ? ' (опц.)' : ''),
+                        percent: '0%'
+                    });
+                } else {
+                    const percentEl = document.getElementById(`block-percent-${blockId}`);
+                    blocks.push({
+                        name: blockName + (isOptional ? ' (опц.)' : ''),
+                        percent: percentEl ? percentEl.textContent : '0%'
+                    });
+                }
             });
 
             blocks.forEach(block => {
@@ -1564,7 +1633,9 @@
             });
 
             let totalPercent = 0;
-            if (blocks.length > 0) {
+            if (hasGlobalReset) {
+                totalPercent = 0;
+            } else if (blocks.length > 0) {
                 const sum = blocks.reduce((acc, block) => {
                     const percent = parseInt(block.percent);
                     return acc + (isNaN(percent) ? 0 : percent);

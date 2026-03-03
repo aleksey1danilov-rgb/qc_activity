@@ -231,6 +231,16 @@
             font-weight: 500;
         }
 
+        /* НОВЫЙ СТИЛЬ ДЛЯ МЕТРИК, ОБНУЛЯЮЩИХ ВСЮ ОЦЕНКУ */
+        .badge-resets-all {
+            background: #8b0000;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
         /* СТИЛИ ДЛЯ БЛОКОВ */
         .blocks-container {
             margin-top: 24px;
@@ -347,6 +357,11 @@
 
         .badge-na-disabled {
             background: #6c757d;
+            color: white;
+        }
+
+        .badge-resets-all {
+            background: #8b0000;
             color: white;
         }
 
@@ -636,6 +651,7 @@
             <ul>
                 <li><strong>Критичная метрика:</strong> при невыполнении применяется штраф (если указан)</li>
                 <li><strong>Глобальная критическая ошибка:</strong> при невыполнении обнуляет ВСЕ блоки (качество = 0%)</li>
+                <li><strong>Обнуляет всю оценку:</strong> при невыполнении делает качество звонка 0%</li>
                 <li><strong>Разрешено Н/О:</strong> если включено, при оценке можно выбрать "Не оценивалось"</li>
                 <li><strong>Рекомендация:</strong> для критичных метрик устанавливайте max_score = 0</li>
             </ul>
@@ -677,6 +693,10 @@
                             <span class="metric-name">{{ metric.name }}</span>
                             <div class="metric-badges">
                                 <span class="badge badge-max">max {{ metric.max_score|default(5) }}</span>
+                                
+                                {% if metric.resets_all %}
+                                <span class="badge badge-resets-all">💀 обнуляет всё</span>
+                                {% endif %}
                                 
                                 {% if metric.is_global_critical %}
                                 <span class="badge badge-global-critical">💥 глобальная</span>
@@ -844,7 +864,7 @@
                     <label for="metricIsCritical">⚠️ Критичная метрика (штраф при невыполнении)</label>
                 </div>
 
-                <!-- НОВЫЙ ЧЕКБОКС: Глобальная критическая ошибка -->
+                <!-- ЧЕКБОКС: Глобальная критическая ошибка -->
                 <div class="form-group checkbox-group" id="globalCriticalGroup" style="display: none;">
                     <input type="checkbox" name="is_global_critical" id="metricIsGlobalCritical">
                     <label for="metricIsGlobalCritical">💥 Глобальная критическая ошибка (обнуляет ВСЕ блоки)</label>
@@ -871,6 +891,13 @@
                 <div class="form-group checkbox-group">
                     <input type="checkbox" name="resets_block" id="metricResetsBlock">
                     <label for="metricResetsBlock">🔄 Обнуляет весь блок при невыполнении</label>
+                </div>
+                
+                <!-- НОВЫЙ ЧЕКБОКС: Обнуляет всю оценку -->
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" name="resets_all" id="metricResetsAll">
+                    <label for="metricResetsAll">💀 Обнуляет ВСЮ оценку (качество = 0%)</label>
+                    <small style="color: #8b0000; display: block; margin-left: 24px;">ВНИМАНИЕ: При невыполнении вся оценка становится 0%</small>
                 </div>
                 
                 <!-- НОВЫЙ ЧЕКБОКС: Разрешить Н/О -->
@@ -943,6 +970,7 @@
                 document.getElementById('metricBlockSelect').value = blockId || '';
                 document.getElementById('metricIsActive').checked = true;
                 document.getElementById('metricAllowNA').checked = true;
+                document.getElementById('metricResetsAll').checked = false;
                 document.getElementById('penaltySettings').style.display = 'none';
                 document.getElementById('globalCriticalGroup').style.display = 'none';
                 document.getElementById('metricIsGlobalCritical').checked = false;
@@ -1037,6 +1065,7 @@
                         document.getElementById('metricIsCritical').checked = metric.is_critical || false;
                         document.getElementById('metricIsGlobalCritical').checked = metric.is_global_critical || false;
                         document.getElementById('metricResetsBlock').checked = metric.resets_block || false;
+                        document.getElementById('metricResetsAll').checked = metric.resets_all || false;  // НОВОЕ ПОЛЕ
                         document.getElementById('metricAllowNA').checked = metric.allow_na !== false;
                         document.getElementById('metricIsActive').checked = metric.is_active !== false;
                         
@@ -1078,7 +1107,6 @@
                 try {
                     let response;
                     if (isEditing) {
-                        // ИСПРАВЛЕНО: правильный URL для обновления блока
                         response = await fetch(`/api/blocks/${blockId}`, {
                             method: 'PUT',
                             headers: {'Content-Type': 'application/json'},
@@ -1128,11 +1156,12 @@
                     is_critical: formData.get('is_critical') === 'on',
                     is_global_critical: formData.get('is_global_critical') === 'on',
                     resets_block: formData.get('resets_block') === 'on',
+                    resets_all: formData.get('resets_all') === 'on',  // НОВОЕ ПОЛЕ
                     allow_na: formData.get('allow_na') === 'on',
                     is_active: formData.get('is_active') === 'on'
                 };
 
-                if (data.is_critical && !data.is_global_critical) {
+                if (data.is_critical && !data.is_global_critical && !data.resets_all) {
                     data.penalty_type = formData.get('penalty_type') || 'block';
                     data.penalty_value = parseInt(formData.get('penalty_value')) || 20;
                 }
@@ -1195,8 +1224,7 @@
                         console.log('Успешно удалено');
                         closeDeleteModal();
                         
-                        // ИСПРАВЛЕНИЕ: принудительная перезагрузка с очисткой кэша
-                        // Добавляем случайный параметр, чтобы браузер не использовал кэш
+                        // Принудительная перезагрузка с очисткой кэша
                         const currentUrl = new URL(window.location.href);
                         currentUrl.searchParams.set('t', Date.now());
                         window.location.href = currentUrl.toString();
@@ -1295,11 +1323,12 @@
                         const penaltySettings = document.getElementById('penaltySettings');
                         const globalCriticalGroup = document.getElementById('globalCriticalGroup');
                         const isGlobalCritical = document.getElementById('metricIsGlobalCritical');
+                        const resetsAll = document.getElementById('metricResetsAll');
                         const maxScoreSelect = document.getElementById('metricMaxScore');
                         
                         if (this.checked) {
                             globalCriticalGroup.style.display = 'block';
-                            if (!isGlobalCritical.checked) {
+                            if (!isGlobalCritical.checked && !resetsAll.checked) {
                                 penaltySettings.style.display = 'block';
                             }
                             if (maxScoreSelect.value !== '0') {
@@ -1324,7 +1353,29 @@
                             penaltySettings.style.display = 'none';
                         } else {
                             const isCritical = document.getElementById('metricIsCritical').checked;
-                            if (isCritical) {
+                            const resetsAll = document.getElementById('metricResetsAll').checked;
+                            if (isCritical && !resetsAll) {
+                                penaltySettings.style.display = 'block';
+                            }
+                        }
+                    });
+                }
+
+                // При выборе resets_all скрываем обычные штрафы
+                const resetsAllCheckbox = document.getElementById('metricResetsAll');
+                if (resetsAllCheckbox) {
+                    resetsAllCheckbox.addEventListener('change', function() {
+                        const penaltySettings = document.getElementById('penaltySettings');
+                        const globalCriticalGroup = document.getElementById('globalCriticalGroup');
+                        if (this.checked) {
+                            penaltySettings.style.display = 'none';
+                            if (document.getElementById('metricIsCritical').checked) {
+                                globalCriticalGroup.style.display = 'block';
+                            }
+                        } else {
+                            const isCritical = document.getElementById('metricIsCritical').checked;
+                            const isGlobalCritical = document.getElementById('metricIsGlobalCritical').checked;
+                            if (isCritical && !isGlobalCritical) {
                                 penaltySettings.style.display = 'block';
                             }
                         }
