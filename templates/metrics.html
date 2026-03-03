@@ -846,6 +846,7 @@
                     <textarea name="description" id="metricDescription" rows="2" placeholder="Что именно оцениваем..."></textarea>
                 </div>
                 
+                <!-- ИСПРАВЛЕНО: Добавлен атрибут name="max_score" -->
                 <div class="form-group">
                     <label>🎯 Максимальный балл</label>
                     <select name="max_score" id="metricMaxScore">
@@ -1152,7 +1153,7 @@
                     block_id: parseInt(blockId),
                     name: formData.get('name'),
                     description: formData.get('description') || '',
-                    max_score: parseInt(formData.get('max_score')) || 5,
+                    max_score: parseInt(formData.get('max_score')),  // ТЕПЕРЬ РАБОТАЕТ!
                     is_critical: formData.get('is_critical') === 'on',
                     is_global_critical: formData.get('is_global_critical') === 'on',
                     resets_block: formData.get('resets_block') === 'on',
